@@ -1,0 +1,7 @@
+ <library path="libelion_moveit_plugin">
+  <class name="elion/ElionPlanner" type="elion::ElionPlannerManager" base_class_type="planning_interface::PlannerManager">
+    <description>
+      Constrained motion planning using OMPL.
+    </description>
+  </class>
+</library>
