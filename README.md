@@ -33,6 +33,8 @@ roslaunch elion_examples panda_example.launch
 ```
 Now Rviz should come up and the script will start executing two planning requests. One with position constraints and one with orientation constraints.
 
+![panda_example](doc/panda_example.png)
+
 ## Run tests
 Build the workspace again with the tests argument added.
 ```
