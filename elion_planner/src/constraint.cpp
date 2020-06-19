@@ -215,14 +215,14 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
       ROS_ERROR_STREAM("Only a single orientation constraints supported. Using the first one.");
     }
 
-    if (constraints.name == "AngleAxisOrientation")
+    if (constraints.name == OrientationErrorType::ANGLE_AXIS)
     {
       ROS_INFO_STREAM("Creating orientation constraints of type: " << constraints.name);
       auto ori_con = std::make_shared<AngleAxisConstraint>(robot_model, group, num_dofs);
       ori_con->init(constraints);
       return ori_con;
     }
-    else if (constraints.name == "RPY")
+    else if (constraints.name == OrientationErrorType::ROLL_PITCH_YAW)
     {
       ROS_INFO_STREAM("Creating orientation constraints of type: " << constraints.name);
       auto ori_con = std::make_shared<RPYConstraints>(robot_model, group, num_dofs);

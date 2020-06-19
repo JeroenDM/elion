@@ -14,6 +14,28 @@ namespace elion
 {
 namespace ob = ompl::base;
 
+/** \Brief Different calculation methods for orientation error.
+ *
+ * As I can only pass strings through MoveIt planning requests
+ * it does not really work with enums of integral type.
+ * Therefore I came up with this akward hack,
+ * which I think is still better than magic with implicit casting.
+ * This hack should result in almost the same syntax.
+ * Is there name collision danger with QUATERNION?
+ * */
+// enum class OrientationErrorType
+// {
+//   ROLL_PITCH_YAW,
+//   ANGLE_AXIS,
+//   QUATERNION
+// };
+namespace OrientationErrorType
+{
+const std::string ROLL_PITCH_YAW{ "RollPitchYaw" };
+const std::string ANGLE_AXIS{ "AngleAxis" };
+const std::string QUATERION{ "Quaterion" };
+}  // namespace OrientationErrorType
+
 /** abstract base class for differen types of constraints
  *
  * They all have bounds on some kind of error function,
