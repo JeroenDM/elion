@@ -27,12 +27,6 @@ namespace elion
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-/** Validator for collion checking
- * this should be passed to the interface from the parent
- * because it is ROS specific.
- * */
-bool isValid(const ob::State* state);
-
 MOVEIT_CLASS_FORWARD(ElionPlanner);
 
 class ElionPlanner

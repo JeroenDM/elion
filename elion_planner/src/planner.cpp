@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "elion_planner/collision_checking.h"
+
 namespace elion
 {
 bool isValid(const ob::State* state)
@@ -41,7 +43,7 @@ void ElionPlanner::preSolve(robot_model::RobotModelConstPtr robot_model, const s
 
   simple_setup_->setPlanner(planner_);
 
-  simple_setup_->setStateValidityChecker(isValid);
+  simple_setup_->setStateValidityChecker(std::make_shared<MoveItStateValidityChecker>(constrained_state_space_info_));
 }
 
 bool ElionPlanner::solve(const Eigen::Ref<const Eigen::VectorXd>& start_joint_positions,

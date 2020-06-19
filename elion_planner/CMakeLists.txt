@@ -38,6 +38,7 @@ add_library(
   src/msg_parsing.cpp
   src/constraint.cpp
   src/planner.cpp
+  src/collision_checking.cpp
 )
 
 target_link_libraries(
