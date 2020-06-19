@@ -46,3 +46,27 @@ target_link_libraries(
   ${catkin_LIBRARIES}
   ${OMPL_LIBRARIES} # TODO see line 16
 )
+
+#############
+## Install ##
+#############
+
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(
+  DIRECTORY
+    include/
+  DESTINATION
+    ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+)
+
+install(
+  FILES
+    elion_interface_description.xml
+  DESTINATION
+    ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

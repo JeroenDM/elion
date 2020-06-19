@@ -47,6 +47,27 @@ target_link_libraries(
   ${OMPL_LIBRARIES}
 )
 
+#############
+## Install ##
+#############
+
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(
+  DIRECTORY
+    include/
+  DESTINATION
+    ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+)
+
+##########
+## Test ##
+##########
+
 if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_elion_conversions test/test_conversions.cpp)
