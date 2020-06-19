@@ -1,3 +1,5 @@
+![CI](https://github.com/JeroenDM/elion/workflows/CI/badge.svg)
+
 # elion
 
 Constrained planning in MoveIt using OMPL's constrained planning interface
