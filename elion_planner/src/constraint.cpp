@@ -20,8 +20,7 @@ namespace elion
  * ****************************************/
 
 BaseConstraint::BaseConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
-                               moveit_msgs::Constraints constraints, const unsigned int num_dofs,
-                               const unsigned int num_cons_)
+                               const unsigned int num_dofs, const unsigned int num_cons_)
   : robot_model_(robot_model), ob::Constraint(num_dofs, num_cons_)
 {
   // Setup Moveit's robot model for kinematic calculations
@@ -205,7 +204,7 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
     {
       ROS_ERROR_STREAM("Only a single position constraints supported. Using the first one.");
     }
-    auto pos_con = std::make_shared<PositionConstraint>(robot_model, group, constraints, num_dofs);
+    auto pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
     pos_con->init(constraints);
     return pos_con;
   }
@@ -219,14 +218,14 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
     if (constraints.name == "AngleAxisOrientation")
     {
       ROS_INFO_STREAM("Creating orientation constraints of type: " << constraints.name);
-      auto ori_con = std::make_shared<AngleAxisConstraint>(robot_model, group, constraints, num_dofs);
+      auto ori_con = std::make_shared<AngleAxisConstraint>(robot_model, group, num_dofs);
       ori_con->init(constraints);
       return ori_con;
     }
     else if (constraints.name == "RPY")
     {
       ROS_INFO_STREAM("Creating orientation constraints of type: " << constraints.name);
-      auto ori_con = std::make_shared<RPYConstraints>(robot_model, group, constraints, num_dofs);
+      auto ori_con = std::make_shared<RPYConstraints>(robot_model, group, num_dofs);
       ori_con->init(constraints);
       return ori_con;
     }

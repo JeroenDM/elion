@@ -31,8 +31,8 @@ namespace ob = ompl::base;
 class BaseConstraint : public ob::Constraint
 {
 public:
-  BaseConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
-                 moveit_msgs::Constraints constraints, const unsigned int num_dofs, const unsigned int num_cons_ = 3);
+  BaseConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group, const unsigned int num_dofs,
+                 const unsigned int num_cons_ = 3);
 
   /** \Brief initialize constraint based on message content.
    *
@@ -75,12 +75,18 @@ public:
    * */
   virtual Eigen::Vector3d calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const = 0;
 
-  /** Calculate the Jacobian for the current parameters that are being cosntraint.
+  /** Calculate the Jacobian for the current parameters that are being constraints.
+   *
+   * TODO, maybe also provide output agruments similar to the jacobian function
+   * so we can default to ob::Constraint::jacobian(x, out) when needed.
    *
    * This is the Jacobian without the correction due to the penalty function
    * (adding a minus sign or setting it to zero.)
    * */
-  virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const = 0;
+  virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
+  {
+    ROS_ERROR_STREAM("Constraint method calcErrorJacobian was not overridded, so it should not be used.");
+  }
 
 protected:
   // MoveIt's robot representation for kinematic calculations
@@ -95,9 +101,8 @@ protected:
 class PositionConstraint : public BaseConstraint
 {
 public:
-  PositionConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
-                     moveit_msgs::Constraints constraints, const unsigned int num_dofs)
-    : BaseConstraint(robot_model, group, constraints, num_dofs)
+  PositionConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group, const unsigned int num_dofs)
+    : BaseConstraint(robot_model, group, num_dofs)
   {
   }
   virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) override;
@@ -112,12 +117,12 @@ public:
  * in order to use the default finite difference jacobian from OMPL.
  *
  * */
-class AngleAxisConstraint : public PositionConstraint
+class AngleAxisConstraint : public BaseConstraint
 {
 public:
   AngleAxisConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
-                      moveit_msgs::Constraints constraints, const unsigned int num_dofs)
-    : PositionConstraint(robot_model, group, constraints, num_dofs)
+                      const unsigned int num_dofs)
+    : BaseConstraint(robot_model, group, num_dofs)
   {
   }
 
@@ -134,19 +139,17 @@ private:
   Eigen::Quaterniond target_as_quat_;
 };
 
-
 /** Orientation constraints based on roll, pitch, yaw error
  *
  * Constraints on roll, pitch, and yaw angle of the end-effector:
  * R = Rx(roll) * Ry(pitch) * Rz(yaw)
  *
  */
-class RPYConstraints : public PositionConstraint
+class RPYConstraints : public BaseConstraint
 {
 public:
-  RPYConstraints(robot_model::RobotModelConstPtr robot_model, const std::string& group,
-                 moveit_msgs::Constraints constraints, const unsigned int num_dofs)
-    : PositionConstraint(robot_model, group, constraints, num_dofs)
+  RPYConstraints(robot_model::RobotModelConstPtr robot_model, const std::string& group, const unsigned int num_dofs)
+    : BaseConstraint(robot_model, group, num_dofs)
   {
   }
   virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) override;

@@ -73,6 +73,9 @@ if(CATKIN_ENABLE_TESTING)
   find_package(moveit_ros_planning REQUIRED)
   find_package(rostest REQUIRED)
 
+  # It seems I don't need the line below, I don't know why...
+  # include_directories(${moveit_ros_planning_INCLUDE_DIRS})
+
   catkin_add_gtest(test_elion_conversions test/test_conversions.cpp)
 
   target_link_libraries(test_elion_conversions

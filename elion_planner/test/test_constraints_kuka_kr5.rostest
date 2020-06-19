@@ -9,6 +9,6 @@
 <param name="base_link" value="base_link" />
 <param name="group" value="manipulator" />
 
-<test pkg="elion_planner" type="elion_planner_test_constraints" test-name="test_constraint_kuka_kr5"/>
+<test pkg="elion_planner" type="elion_planner_test_constraints_kuka_kr5" test-name="test_constraint_kuka_kr5"/>
 
 </launch>

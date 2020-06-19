@@ -87,7 +87,7 @@ TEST_F(TestConstraints, InitPositionConstraint)
   moveit_msgs::Constraints constraint_msgs;
   constraint_msgs.position_constraints.push_back(createPositionConstraint(base_link_name_, ee_link_name_));
 
-  constraint_ = std::make_shared<elion::PositionConstraint>(robot_model_, group_name_, constraint_msgs, num_dofs_);
+  constraint_ = std::make_shared<elion::PositionConstraint>(robot_model_, group_name_, num_dofs_);
   constraint_->init(constraint_msgs);
 }
 
@@ -96,7 +96,7 @@ TEST_F(TestConstraints, InitAngleAxisConstraint)
   moveit_msgs::Constraints constraint_msgs;
   constraint_msgs.orientation_constraints.push_back(createOrientationConstraint(base_link_name_, ee_link_name_));
 
-  constraint_ = std::make_shared<elion::AngleAxisConstraint>(robot_model_, group_name_, constraint_msgs, num_dofs_);
+  constraint_ = std::make_shared<elion::AngleAxisConstraint>(robot_model_, group_name_, num_dofs_);
   constraint_->init(constraint_msgs);
 }
 
@@ -105,7 +105,7 @@ TEST_F(TestConstraints, InitRPYConstraint)
   moveit_msgs::Constraints constraint_msgs;
   constraint_msgs.orientation_constraints.push_back(createOrientationConstraint(base_link_name_, ee_link_name_));
 
-  constraint_ = std::make_shared<elion::RPYConstraints>(robot_model_, group_name_, constraint_msgs, num_dofs_);
+  constraint_ = std::make_shared<elion::RPYConstraints>(robot_model_, group_name_, num_dofs_);
   constraint_->init(constraint_msgs);
 }
 

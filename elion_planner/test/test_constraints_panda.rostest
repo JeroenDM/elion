@@ -9,6 +9,6 @@
 <param name="base_link" value="panda_link0" />
 <param name="group" value="panda_arm" />
 
-<test pkg="elion_planner" type="elion_planner_test_constraints" test-name="test_constraint_panda"/>
+<test pkg="elion_planner" type="elion_planner_test_constraints_panda" test-name="test_constraint_panda"/>
 
 </launch>
