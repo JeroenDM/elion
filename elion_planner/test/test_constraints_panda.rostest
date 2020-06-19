@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+<include file="$(find panda_moveit_config)/launch/planning_context.launch">
+  <arg name="load_robot_description" value="true"/>
+</include>
+
+<param name="ee_link" value="panda_link6" />
+<param name="base_link" value="panda_link0" />
+<param name="group" value="panda_arm" />
+
+<test pkg="elion_planner" type="elion_planner_test_constraints" test-name="test_constraint_panda"/>
+
+</launch>

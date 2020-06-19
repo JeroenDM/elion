@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+<include file="$(find kuka_kr5_moveit_config)/launch/planning_context.launch">
+  <arg name="load_robot_description" value="true"/>
+</include>
+
+<param name="ee_link" value="tool0" />
+<param name="base_link" value="base_link" />
+<param name="group" value="manipulator" />
+
+<test pkg="elion_planner" type="elion_planner_test_constraints" test-name="test_constraint_kuka_kr5"/>
+
+</launch>

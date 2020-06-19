@@ -43,6 +43,13 @@
   <exec_depend>moveit_msgs</exec_depend>
   <exec_depend>roscpp</exec_depend>
 
+  <test_depend>rostest</test_depend>
+  <test_depend>moveit_ros_planning</test_depend>
+  <test_depend>panda_moveit_config</test_depend>
+
+  <!-- unreased test resources -->
+  <!-- <test_depend>kuka_kr5_moveit_config</test_depend> -->
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

@@ -70,11 +70,38 @@ install(
 
 if(CATKIN_ENABLE_TESTING)
 
+  find_package(moveit_ros_planning REQUIRED)
+  find_package(rostest REQUIRED)
+
   catkin_add_gtest(test_elion_conversions test/test_conversions.cpp)
 
   target_link_libraries(test_elion_conversions
     ${PROJECT_NAME}
     ${catkin_LIBRARIES}
+  )
+
+  # add_rostest_gtest(${PROJECT_NAME}_test_constraints_kuka_kr5
+  #   test/test_constraints_kuka_kr5.rostest
+  #   test/test_constraints.cpp
+  # )
+
+  # target_link_libraries(${PROJECT_NAME}_test_constraints_kuka_kr5
+  #   gtest
+  #   ${moveit_ros_planning_LIBRARIES}
+  #   ${catkin_LIBRARIES}
+  #   ${PROJECT_NAME}
+  # )
+
+  add_rostest_gtest(${PROJECT_NAME}_test_constraints_panda
+    test/test_constraints_panda.rostest
+    test/test_constraints.cpp
+  )
+
+  target_link_libraries(${PROJECT_NAME}_test_constraints_panda
+    gtest
+    ${moveit_ros_planning_LIBRARIES}
+    ${catkin_LIBRARIES}
+    ${PROJECT_NAME}
   )
 
 endif()
