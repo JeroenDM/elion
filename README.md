@@ -6,7 +6,7 @@ Constrained planning in MoveIt using OMPL's constrained planning interface
 
 Refactored version of: [https://github.com/JeroenDM/moveit_constrained_planning_plugin](https://github.com/JeroenDM/moveit_constrained_planning_plugin)
 
-Work in progress.
+Work in progress. The instructions in this readme are valid for the `stable` branch. The branch `devel` constains ongoing work not described here, but discussed in the [GSoC thread](https://github.com/ros-planning/moveit/issues/2092).
 
 ## Build instructions
 
