@@ -177,7 +177,7 @@ int main(int argc, char** argv)
   if (res1.trajectory_)
   {
     ROS_INFO_STREAM("Path found for position constraints of length: " << res1.trajectory_->getWayPointCount());
-    visuals.displaySolution(res1, joint_model_group);
+    visuals.displaySolution(res1, joint_model_group, false);
   }
 
   planning_interface::MotionPlanResponse res2;
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
   {
     ros::Duration(2.0).sleep(); // wait to make sure the previous solution was shown
     ROS_INFO_STREAM("Path found for position constraints of length: " << res2.trajectory_->getWayPointCount());
-    visuals.displaySolution(res2, joint_model_group);
+    visuals.displaySolution(res2, joint_model_group, true);
   }
 
  

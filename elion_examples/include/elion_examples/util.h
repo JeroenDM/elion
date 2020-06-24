@@ -61,7 +61,7 @@ public:
    * show end-effector path using moveit visual tools.
    * */
   void displaySolution(planning_interface::MotionPlanResponse res,
-                       const robot_state::JointModelGroup* joint_model_group);
+                       const robot_state::JointModelGroup* joint_model_group, bool withOrientation);
 
   moveit_visual_tools::MoveItVisualToolsPtr rvt_;
   ros::Publisher display_publisher;

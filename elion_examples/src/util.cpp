@@ -11,6 +11,8 @@
 
 #include <moveit/kinematic_constraints/utils.h>
 
+#include <tf2_eigen/tf2_eigen.h>
+
 namespace elion
 {
 void loadPlanningPlugin(ClassLoaderSPtr& planner_plugin_loader, planning_interface::PlannerManagerPtr& planner_instance,
@@ -147,7 +149,7 @@ void Visuals::showPositionConstraints(moveit_msgs::PositionConstraint pos_con)
  * show end-effector path using moveit visual tools.
  * */
 void Visuals::displaySolution(planning_interface::MotionPlanResponse res,
-                              const robot_state::JointModelGroup* joint_model_group)
+                              const robot_state::JointModelGroup* joint_model_group, bool withOrientation)
 {
   moveit_msgs::DisplayTrajectory display_trajectory;
 
@@ -160,6 +162,19 @@ void Visuals::displaySolution(planning_interface::MotionPlanResponse res,
   rvt_->publishTrajectoryLine(display_trajectory.trajectory.back(), joint_model_group);
   rvt_->trigger();
   display_publisher.publish(display_trajectory);
+
+  const std::vector<std::string> &link_model_names = joint_model_group->getLinkModelNames();
+  if (withOrientation) 
+  {
+    for (int k = 0; k < res.trajectory_->getWayPointCount(); ++k) 
+    {
+      geometry_msgs::Pose pose_msg;
+      const Eigen::Isometry3d &end_effector_transform = res.trajectory_->getWayPoint(k).getGlobalLinkTransform(link_model_names.back());
+      pose_msg = tf2::toMsg(end_effector_transform);
+      rvt_->publishAxis(pose_msg);
+    }
+    rvt_->trigger();
+  }
 }
 
 }  // namespace elion
