@@ -5,7 +5,7 @@
   <arg name="load_robot_description" value="true"/>
 </include>
 
-<param name="ee_link" value="panda_link6" />
+<param name="ee_link" value="panda_link7" />
 <param name="base_link" value="panda_link0" />
 <param name="group" value="panda_arm" />
 
