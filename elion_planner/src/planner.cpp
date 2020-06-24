@@ -76,9 +76,10 @@ void ElionPlanner::postSolve()
   auto path = simple_setup_->getSolutionPath();
   path.interpolate();
 
+  bool is_path_valid = path.check();
+  ROS_INFO_STREAM("Is OMPL interpolation valid? " << (is_path_valid ? "yes" : "no"));
   // path.printAsMatrix(std::cout);
-
-  std::cout << "Writing path from OMPL to generic format." << std::endl;
+  ROS_INFO_STREAM("Writing path from OMPL to generic format.");
 
   // write path to generic format indepenent from OMPL to pass it to ROS?
   solution_path_.clear();
