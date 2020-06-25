@@ -70,14 +70,40 @@ bool ElionPlanner::solve(const Eigen::Ref<const Eigen::VectorXd>& start_joint_po
   }
 }
 
+bool ElionPlanner::checkSolution()
+{
+  if (solution_path_.size() < 2)
+  {
+    ROS_ERROR_STREAM("There is no solution path to check.");
+    return false;
+  }
+
+  const double constraint_tolerance{ constraints_->getTolerance() };
+  Eigen::VectorXd constraint_violation{ constraints_->getCoDimension() };
+
+  for (auto& q : solution_path_)
+  {
+    constraints_->function(q, constraint_violation);
+    for (std::size_t dim{ 0 }; dim < constraint_violation.size(); ++dim)
+    {
+      if (std::abs(constraint_violation[dim]) > constraint_tolerance)
+      {
+        ROS_INFO_STREAM("Constraints violated along the path for dimension " << dim << " at state: ");
+        ROS_INFO_STREAM(q.transpose());
+        ROS_INFO_STREAM(constraint_violation.transpose());
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 void ElionPlanner::postSolve()
 {
   simple_setup_->simplifySolution(5.);
   auto path = simple_setup_->getSolutionPath();
   path.interpolate();
 
-  bool is_path_valid = path.check();
-  ROS_INFO_STREAM("Is OMPL interpolation valid? " << (is_path_valid ? "yes" : "no"));
   // path.printAsMatrix(std::cout);
   ROS_INFO_STREAM("Writing path from OMPL to generic format.");
 
@@ -90,5 +116,9 @@ void ElionPlanner::postSolve()
     Eigen::VectorXd joint_position(x);
     solution_path_.push_back(joint_position);
   }
+
+  // bool is_path_valid = path.check();
+  bool is_path_valid = checkSolution();
+  ROS_INFO_STREAM("Is OMPL interpolation valid? " << (is_path_valid ? "yes" : "no"));
 }
 }  // namespace elion

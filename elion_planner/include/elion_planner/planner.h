@@ -46,6 +46,9 @@ public:
 
   void postSolve();
 
+  /** \Brief Check if the constraints are satisfied along the path `solution_path_`. **/
+  bool checkSolution();
+
   /** TODO too much Eigen copy operations. */
   std::vector<Eigen::VectorXd> getSolutionPath()
   {
