@@ -1,0 +1,5 @@
+repositories:
+  kuka_test_resources:
+    type: git
+    url: https://github.com/JeroenDM/kuka_test_resources.git
+    version: master
