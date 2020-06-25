@@ -47,3 +47,10 @@ target_link_libraries(${PROJECT_NAME}_panda_example
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}_util
 )
+
+add_executable(${PROJECT_NAME}_welding_example  src/welding_example.cpp)
+
+target_link_libraries(${PROJECT_NAME}_welding_example
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}_util
+)
