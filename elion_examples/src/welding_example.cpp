@@ -120,13 +120,14 @@ int main(int argc, char** argv)
   goal_pose.position.z = 0.02;
 
   auto req = createPTPProblem(start_pose, goal_pose, robot_model, joint_model_group, visuals);
-  req.allowed_planning_time = 5.0;
+  req.allowed_planning_time = 10.0;
 
   // Create and fill in the path constraints
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // position constraint to follow weld line
   const std::string ee_link = joint_model_group->getLinkModelNames().back();
-  std::vector<double> dims{ 0.05, 1.0, 0.05 };
+  std::vector<double> dims{ 1.0, 1.0, 0.05};
+  // std::vector<double> dims{ 0.2, 1.0, 0.2 };
   std::vector<double> pos{ 0.98, 0.0, 0.02 };
   auto position_constraint = elion::createPositionConstraint(FIXED_FRAME, ee_link, dims, pos);
 
@@ -136,10 +137,11 @@ int main(int argc, char** argv)
 
   // orientation constraints only allowing rotation around tool axis,
   // and some rotation in other directions.
+  // std::vector<double> tolerance{ -1.0, -1.0, -1.0 };
   std::vector<double> tolerance{ 0.1, 0.1, -1.0 };
   auto orientation_constraint = elion::createOrientationConstraint(FIXED_FRAME, ee_link, tolerance, orientation);
   req.path_constraints.name = "AngleAxis";  // hack to specify orientation error type
-  //   req.path_constraints.orientation_constraints.push_back(orientation_constraint);
+  req.path_constraints.orientation_constraints.push_back(orientation_constraint);
 
   // Solve the problems
   // ^^^^^^^^^^^^^^^^^^

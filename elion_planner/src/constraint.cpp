@@ -28,7 +28,7 @@ BaseConstraint::BaseConstraint(robot_model::RobotModelConstPtr robot_model, cons
   robot_state_->setToDefaultValues();
   joint_model_group_ = robot_state_->getJointModelGroup(group);
 
-  ROS_INFO_STREAM("Creating constraints of shape (" << num_dofs << ", 3)");
+  ROS_INFO_STREAM("Creating constraints of shape (" << num_dofs << ", " << num_cons_ << ")");
 
   // use end-effector link by default TODO make this input
   link_name_ = joint_model_group_->getLinkModelNames().back();
@@ -99,7 +99,7 @@ void PositionConstraint::parseConstraintMsg(moveit_msgs::Constraints constraints
   target_ << position.x, position.y, position.z;
 }
 
-Eigen::Vector3d PositionConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+Eigen::VectorXd PositionConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
   return forwardKinematics(x).translation() - target_;
 }
@@ -132,7 +132,7 @@ void AngleAxisConstraint::parseConstraintMsg(moveit_msgs::Constraints constraint
   // but calcCurrentValues and calcCurrentJacobian use target_as_quat_
 }
 
-Eigen::Vector3d AngleAxisConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+Eigen::VectorXd AngleAxisConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
   // I'm not sure yet whether I want the error expressed in the current ee_frame, or target_frame,
   // or world frame. This implementation expressed the error in the end-effector frame.
@@ -165,7 +165,7 @@ void RPYConstraints::parseConstraintMsg(moveit_msgs::Constraints constraints)
   // but calcCurrentValues and calcCurrentJacobian use target_as_quat_
 }
 
-Eigen::Vector3d RPYConstraints::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+Eigen::VectorXd RPYConstraints::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
   // I'm not sure yet whether I want the error expressed in the current ee_frame, or target_frame,
   // or world frame. This implementation expressed the error in the end-effector frame.
@@ -183,6 +183,55 @@ Eigen::MatrixXd RPYConstraints::calcErrorJacobian(const Eigen::Ref<const Eigen::
 }
 
 /******************************************
+ * Position and orienation constraints
+ * Using angle axis error for orientation
+ * ****************************************/
+void PoseConstraints::parseConstraintMsg(moveit_msgs::Constraints constraints)
+{
+  bounds_.clear();
+  bounds_ = positionConstraintMsgToBoundVector(constraints.position_constraints.at(0));
+  ROS_INFO_STREAM("Parsed x constraints" << bounds_[0]);
+  ROS_INFO_STREAM("Parsed y constraints" << bounds_[1]);
+  ROS_INFO_STREAM("Parsed z constraints" << bounds_[2]);
+
+  // extract target / nominal value
+  geometry_msgs::Point position =
+      constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
+  target_ << position.x, position.y, position.z;
+
+  auto ori_bounds = orientationConstraintMsgToBoundVector(constraints.orientation_constraints.at(0));
+  bounds_.push_back(ori_bounds[0]);
+  bounds_.push_back(ori_bounds[1]);
+  // IGNORE RZ CONSTRAINT
+  tf::quaternionMsgToEigen(constraints.orientation_constraints.at(0).orientation, target_as_quat_);
+  ROS_INFO_STREAM("Parsed rx / roll constraints" << bounds_[3]);
+  ROS_INFO_STREAM("Parsed ry / pitch constraints" << bounds_[4]);
+  // ROS_INFO_STREAM("Parsed rz / yaw constraints" << bounds_[5]);
+}
+
+Eigen::VectorXd PoseConstraints::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+{
+  Eigen::Matrix<double, 5, 1> error;
+  auto fk_pose = forwardKinematics(x);
+  error.topRows(3) = fk_pose.translation() - target_;
+
+  Eigen::Matrix3d Rerror = fk_pose.rotation().transpose() * target_as_quat_;
+  Eigen::AngleAxisd aa(Rerror);
+  double angle = aa.angle();
+  assert(std::abs(angle) < M_PI);
+  // error.bottomRows(3) = aa.axis() * angle;
+  error[3] = aa.axis()[0] * angle;
+  error[4] = aa.axis()[1] * angle;
+
+  return error;
+}
+
+// Eigen::MatrixXd PoseConstraints::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
+// {
+//   return geometricJacobian(x).topRows(5);
+// }
+
+/******************************************
  * Factory
  * ****************************************/
 
@@ -196,7 +245,11 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
   if (num_pos_con > 0 && num_ori_con > 0)
   {
     ROS_ERROR_STREAM("Combining position and orientation constraints not supported yet.");
-    return nullptr;
+    // return nullptr;
+
+    auto pose_con = std::make_shared<PoseConstraints>(robot_model, group, num_dofs);
+    pose_con->init(constraints);
+    return pose_con;
   }
   else if (num_pos_con > 0)
   {
