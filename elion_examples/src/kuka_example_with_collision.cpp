@@ -158,7 +158,7 @@ int main(int argc, char** argv)
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // position constraint to follow weld line
   const std::string ee_link = joint_model_group->getLinkModelNames().back();
-  std::vector<double> dims{ 0.05, 0.4, 0.05 };
+  std::vector<double> dims{ 0.01, 0.4, 0.01 };
   std::vector<double> pos{ 0.8, 0.0, 0.2 };
   auto position_constraint = elion::createPositionConstraint(FIXED_FRAME, ee_link, dims, pos);
 
