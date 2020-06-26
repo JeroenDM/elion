@@ -155,7 +155,6 @@ int main(int argc, char** argv)
   box_pose.position.x = 0.6;
   box_pose.position.y = 0.0;
   box_pose.position.z = 0.5;
-  visuals.rvt_->publishCuboid(box_pose, 0.3, 0.1, 1.0, rviz_visual_tools::GREEN);
   visuals.rvt_->publishCollisionCuboid(box_pose, 0.3, 0.1, 1.0, "box_1", rviz_visual_tools::GREEN);
   visuals.rvt_->trigger();
 
