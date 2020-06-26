@@ -39,6 +39,7 @@ add_library(
   src/constraint.cpp
   src/planner.cpp
   src/collision_checking.cpp
+  src/threadsafe_state_storage.cpp
 )
 
 target_link_libraries(
