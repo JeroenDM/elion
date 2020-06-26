@@ -45,7 +45,7 @@ namespace elion
 class TSStateStorage
 {
 public:
-  TSStateStorage(const moveit::core::RobotModelPtr& robot_model);
+  TSStateStorage(robot_model::RobotModelConstPtr& robot_model);
   TSStateStorage(const moveit::core::RobotState& start_state);
   ~TSStateStorage();
 

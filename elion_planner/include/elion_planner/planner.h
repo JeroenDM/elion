@@ -11,6 +11,7 @@
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_interface/planning_request.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/Constraint.h>
@@ -35,7 +36,7 @@ public:
   ElionPlanner();
 
   void preSolve(robot_model::RobotModelConstPtr robot_model, const std::string& group,
-                planning_interface::MotionPlanRequest request);
+                const planning_scene::PlanningSceneConstPtr& ps, planning_interface::MotionPlanRequest request);
 
   /** directly pass joint positions for start and goal in this minimal example
    *
