@@ -12,11 +12,21 @@ namespace elion
 {
 namespace ob = ompl::base;
 
-// define this class:
-class MoveItStateValidityChecker : public ob::StateValidityChecker
+/** \Brief interface to collision checking in planning scene
+ * 
+ * The class is explicitly called collision checker because that is it's only
+ * responsibility. In the existing OMPL interface in MoveIt, the state validity
+ * checker has two extra responsibilities:
+ * 
+ * - Check path constraints -> this is now part of the OMPL state space
+ * - Check joint limits? -> these are now bounds on the OMPL state space
+ * ( although the latter is not correctly implemented yet... )
+ * 
+ * */
+class MoveItCollisionChecker : public ob::StateValidityChecker
 {
 public:
-  MoveItStateValidityChecker(const ob::SpaceInformationPtr& si) : ob::StateValidityChecker(si)
+  MoveItCollisionChecker(const ob::SpaceInformationPtr& si) : ob::StateValidityChecker(si)
   {
   }
 

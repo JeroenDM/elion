@@ -2,7 +2,7 @@
 
 namespace elion
 {
-bool MoveItStateValidityChecker::isValid(const ob::State* state) const
+bool MoveItCollisionChecker::isValid(const ob::State* state) const
 {
   return true;
 }
