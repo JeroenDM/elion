@@ -72,21 +72,21 @@ void addObstacles(elion::Visuals& vis)
   table_pose.position.x = 0.85;
   table_pose.position.y = 0.25;
   table_pose.position.z = 0.13;
-  vis.rvt_->publishCuboid(table_pose, 0.5, 0.25, 0.01, rviz_visual_tools::GREEN);
+  vis.rvt_->publishCuboid(table_pose, 0.5, 0.25, 0.05, rviz_visual_tools::GREEN);
   vis.rvt_->publishCollisionCuboid(table_pose, 0.5, 0.25, 0.01, "table", rviz_visual_tools::GREEN);
 
   box1_pose.orientation.w = 1.0;
   box1_pose.position.x = 0.85;
   box1_pose.position.y = -0.1;
   box1_pose.position.z = 0.08;
-  vis.rvt_->publishCuboid(box1_pose, 0.1, 0.1, 0.1, rviz_visual_tools::GREEN);
+  vis.rvt_->publishCuboid(box1_pose, 0.1, 0.2, 0.1, rviz_visual_tools::GREEN);
   vis.rvt_->publishCollisionCuboid(box1_pose, 0.1, 0.1, 0.1, "box1", rviz_visual_tools::GREEN);
 
   box2_pose.orientation.w = 1.0;
   box2_pose.position.x = 0.85;
   box2_pose.position.y = -0.1;
   box2_pose.position.z = 0.32;
-  vis.rvt_->publishCuboid(box2_pose, 0.1, 0.1, 0.1, rviz_visual_tools::GREEN);
+  vis.rvt_->publishCuboid(box2_pose, 0.1, 0.2, 0.1, rviz_visual_tools::GREEN);
   vis.rvt_->publishCollisionCuboid(box2_pose, 0.1, 0.1, 0.1, "box2", rviz_visual_tools::GREEN);
   vis.rvt_->trigger();
 }
