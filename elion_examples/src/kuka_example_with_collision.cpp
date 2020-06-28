@@ -65,7 +65,7 @@ inline double deg2rad(double angle_degrees)
   return angle_degrees * M_PI / 180.0;
 }
 
-void addObstacles(elion::Visuals& vis)
+void addObstaclesCase1(elion::Visuals& vis)
 {
   geometry_msgs::Pose table_pose, box1_pose, box2_pose;
   table_pose.orientation.w = 1.0;
@@ -85,6 +85,25 @@ void addObstacles(elion::Visuals& vis)
   box2_pose.orientation.w = 1.0;
   box2_pose.position.x = 0.85;
   box2_pose.position.y = -0.1;
+  box2_pose.position.z = 0.32;
+  vis.rvt_->publishCuboid(box2_pose, 0.1, 0.2, 0.1, rviz_visual_tools::GREEN);
+  vis.rvt_->publishCollisionCuboid(box2_pose, 0.1, 0.1, 0.1, "box2", rviz_visual_tools::GREEN);
+  vis.rvt_->trigger();
+}
+
+void addObstaclesCase2(elion::Visuals& vis)
+{
+  geometry_msgs::Pose box1_pose, box2_pose;
+  box1_pose.orientation.w = 1.0;
+  box1_pose.position.x = 0.85;
+  box1_pose.position.y = 0.0;
+  box1_pose.position.z = 0.08;
+  vis.rvt_->publishCuboid(box1_pose, 0.1, 0.2, 0.1, rviz_visual_tools::GREEN);
+  vis.rvt_->publishCollisionCuboid(box1_pose, 0.1, 0.1, 0.1, "box1", rviz_visual_tools::GREEN);
+
+  box2_pose.orientation.w = 1.0;
+  box2_pose.position.x = 0.85;
+  box2_pose.position.y = 0.0;
   box2_pose.position.z = 0.32;
   vis.rvt_->publishCuboid(box2_pose, 0.1, 0.2, 0.1, rviz_visual_tools::GREEN);
   vis.rvt_->publishCollisionCuboid(box2_pose, 0.1, 0.1, 0.1, "box2", rviz_visual_tools::GREEN);
@@ -119,7 +138,8 @@ int main(int argc, char** argv)
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   elion::Visuals visuals(FIXED_FRAME, node_handle);
 
-  addObstacles(visuals);
+  addObstaclesCase1(visuals);
+  // addObstaclesCase2(visuals);
 
   auto psm = visuals.rvt_->getPlanningSceneMonitor();
 
@@ -147,12 +167,14 @@ int main(int argc, char** argv)
   tf2::Quaternion orientation2;
   orientation2.setRPY(0, deg2rad(90), 0);
   goal_pose.orientation = tf2::toMsg(orientation2);
+  // // Case 2 goal has same orientation as the start pose
+  // goal_pose.orientation = tf2::toMsg(orientation);
   goal_pose.position.x = 0.8;
   goal_pose.position.y = -0.2;
   goal_pose.position.z = 0.2;
 
   auto req = createPTPProblem(start_pose, goal_pose, robot_model, joint_model_group, visuals);
-  req.allowed_planning_time = 100.0;
+  req.allowed_planning_time = 100.0;  // For the second case we sometimes need a lot more time
 
   // Create and fill in the path constraints
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
