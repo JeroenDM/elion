@@ -244,7 +244,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
 
   if (num_pos_con > 0 && num_ori_con > 0)
   {
-    ROS_ERROR_STREAM("Combining position and orientation constraints not supported yet.");
+    ROS_INFO_STREAM("Combining position and orientation constraints creates a specific type of constraints for now.");
+    ROS_INFO_STREAM("Rotation around local tool z-axis is unconstrained and independent of info in planning request.");
     // return nullptr;
 
     auto pose_con = std::make_shared<PoseConstraints>(robot_model, group, num_dofs);

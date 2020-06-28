@@ -112,21 +112,19 @@ int main(int argc, char** argv)
   start_pose.position.z = 0.02;
 
   geometry_msgs::Pose goal_pose;
-  //   tf2::Quaternion orientation2;
-  //   orientation2.setEuler(0, deg2rad(135), deg2rad(90));
-  goal_pose.orientation = tf2::toMsg(orientation);
+  goal_pose.orientation = tf2::toMsg(orientation); // use same as start orientation
   goal_pose.position.x = 0.98;
   goal_pose.position.y = 0.5;
   goal_pose.position.z = 0.02;
 
   auto req = createPTPProblem(start_pose, goal_pose, robot_model, joint_model_group, visuals);
-  req.allowed_planning_time = 10.0;
+  req.allowed_planning_time = 20.0;
 
   // Create and fill in the path constraints
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // position constraint to follow weld line
   const std::string ee_link = joint_model_group->getLinkModelNames().back();
-  std::vector<double> dims{ 1.0, 1.0, 0.05};
+  std::vector<double> dims{ 0.01, 1.0, 0.01};
   // std::vector<double> dims{ 0.2, 1.0, 0.2 };
   std::vector<double> pos{ 0.98, 0.0, 0.02 };
   auto position_constraint = elion::createPositionConstraint(FIXED_FRAME, ee_link, dims, pos);

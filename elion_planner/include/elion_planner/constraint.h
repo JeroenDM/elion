@@ -186,6 +186,10 @@ private:
  *
  * Hardcoded implementation instead of using the class
  * ompl::base::ConstraintsIntersection
+ * 
+ * This applies position and angle-axis constraints,
+ * but leaves the rotation around the tool's local z-axis unconstraint,
+ * ignoring whatever is in the planning request for "absolute_z_axis_tolerance".
  *
  * */
 class PoseConstraints : public BaseConstraint
