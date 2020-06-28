@@ -118,6 +118,12 @@ protected:
   std::string link_name_;      /** Robot link the constraints are applied to. */
   std::vector<Bounds> bounds_; /** Upper and lower bounds on constrained variables. */
   Eigen::Vector3d target_;     /** target for equality constraints, nominal value for inequality constraints. */
+
+  // New target is a full 3D pose, instead of only position or orientation
+  // to allow for more general constraints.
+  // Bounds are expressed on a deviation from the location of this frame,
+  // expressed IN this local frame.
+  Eigen::Isometry3d target_pose_;
 };
 
 class PositionConstraint : public BaseConstraint

@@ -97,16 +97,22 @@ void PositionConstraint::parseConstraintMsg(moveit_msgs::Constraints constraints
   geometry_msgs::Point position =
       constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
   target_ << position.x, position.y, position.z;
+
+  // target_pose_ should replace target
+  Eigen::Quaterniond temp_quat;
+  tf::quaternionMsgToEigen(constraints.position_constraints[0].constraint_region.primitive_poses[0].orientation,
+                           temp_quat);
+  target_pose_ = Eigen::Translation3d(position.x, position.y, position.z) * temp_quat;
 }
 
 Eigen::Vector3d PositionConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  return forwardKinematics(x).translation() - target_;
+  return target_pose_.rotation().transpose() * (forwardKinematics(x).translation() - target_pose_.translation());
 }
 
 Eigen::MatrixXd PositionConstraint::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  return geometricJacobian(x).topRows(3);
+  return target_pose_.rotation().transpose() * geometricJacobian(x).topRows(3);
 }
 
 /******************************************
