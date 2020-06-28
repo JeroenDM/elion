@@ -54,7 +54,7 @@ bool ElionPlanningContext::solve(planning_interface::MotionPlanResponse& res)
   }
   ROS_INFO_STREAM("goal state: " << goal_joint_positions);
 
-  elion_planner_->preSolve(robot_model_, joint_model_group_->getName(), request_);
+  elion_planner_->preSolve(robot_model_, joint_model_group_->getName(), getPlanningScene(), request_);
 
   double allowed_planning_time = request_.allowed_planning_time;
   if (allowed_planning_time == 0.0)
