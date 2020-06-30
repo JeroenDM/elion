@@ -99,6 +99,33 @@ protected:
     return robot_state_->getGlobalLinkTransform(ee_link_name_);
   }
 
+  Eigen::VectorXd getRandomState()
+  {
+    robot_state_->setToRandomPositions(joint_model_group_);
+    Eigen::VectorXd q;
+    robot_state_->copyJointGroupPositions(joint_model_group_, q);
+    return q;
+  }
+
+  Eigen::MatrixXd numericalJacobianPosition(const Eigen::VectorXd q)
+  {
+    const double h{ 1e-6 }; /* step size for numerical derivation */
+
+    Eigen::MatrixXd J = Eigen::MatrixXd::Zero(3, num_dofs_);
+
+    // helper matrix for differentiation.
+    Eigen::MatrixXd Ih = h * Eigen::MatrixXd::Identity(num_dofs_, num_dofs_);
+
+    for (std::size_t dim{ 0 }; dim < num_dofs_; ++dim)
+    {
+      Eigen::Vector3d pos = fk(q).translation();
+      Eigen::Vector3d pos_plus_h = fk(q + Ih.col(dim)).translation();
+      Eigen::Vector3d col = (pos_plus_h - pos) / h;
+      J.col(dim) = col;
+    }
+    return J;
+  }
+
   Eigen::MatrixXd numericalJacobianRPY(const Eigen::VectorXd q)
   {
     const double h{ 1e-6 }; /* step size for numerical derivation */
@@ -137,6 +164,34 @@ TEST_F(TestConstraints, InitPositionConstraint)
 
   constraint_ = std::make_shared<elion::PositionConstraint>(robot_model_, group_name_, num_dofs_);
   constraint_->init(constraint_msgs);
+}
+
+TEST_F(TestConstraints, PositionConstraintJacobian)
+{
+  moveit_msgs::Constraints constraint_msgs;
+  constraint_msgs.position_constraints.push_back(createPositionConstraint(base_link_name_, ee_link_name_));
+
+  constraint_ = std::make_shared<elion::PositionConstraint>(robot_model_, group_name_, num_dofs_);
+  constraint_->init(constraint_msgs);
+
+  double total_error{ 999.9 };
+  const double ERROR_TOLERANCE{ 1e-4 }; /** High tolerance because of high finite difference error. **/
+  const int NUM_RANDOM_TESTS{ 10 };
+
+  for (int i{ 0 }; i < NUM_RANDOM_TESTS; ++i)
+  {
+    auto q = getRandomState();
+    auto J_exact = constraint_->calcErrorJacobian(q);
+    auto J_finite_diff = numericalJacobianPosition(q);
+
+    // std::cout << "Analytical jacobian: \n";
+    // std::cout << J_exact << std::endl;
+    // std::cout << "Finite difference jacobian: \n";
+    // std::cout << J_finite_diff << std::endl;
+
+    total_error = (J_exact - J_finite_diff).lpNorm<1>();
+    EXPECT_LT(total_error, ERROR_TOLERANCE);
+  }
 }
 
 TEST_F(TestConstraints, InitAngleAxisConstraint)
