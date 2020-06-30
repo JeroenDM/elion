@@ -16,11 +16,16 @@ mkdir -p catkin_ws/src
 cd catkin_ws/src
 git clone https://github.com/JeroenDM/elion.git
 rosdep install --from-paths . --ignore-src
-cd ..
+```
+
+and add the unreleased test dependencies using [vcstool](https://github.com/dirk-thomas/vcstool).
+```
+vcs import < elion/test_dependencies.repos
 ```
 
 At the moment I'm mostly building in Debug mode:
 ```bash
+cd ..
 catkin config --cmake-args -DCMAKE_BUILD_TYPE=Debug
 catkin build
 source devel/setup.bash

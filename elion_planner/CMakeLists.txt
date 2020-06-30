@@ -83,17 +83,17 @@ if(CATKIN_ENABLE_TESTING)
     ${catkin_LIBRARIES}
   )
 
-  # add_rostest_gtest(${PROJECT_NAME}_test_constraints_kuka_kr5
-  #   test/test_constraints_kuka_kr5.rostest
-  #   test/test_constraints.cpp
-  # )
+  add_rostest_gtest(${PROJECT_NAME}_test_constraints_kuka_kr5
+    test/test_constraints_kuka_kr5.rostest
+    test/test_constraints.cpp
+  )
 
-  # target_link_libraries(${PROJECT_NAME}_test_constraints_kuka_kr5
-  #   gtest
-  #   ${moveit_ros_planning_LIBRARIES}
-  #   ${catkin_LIBRARIES}
-  #   ${PROJECT_NAME}
-  # )
+  target_link_libraries(${PROJECT_NAME}_test_constraints_kuka_kr5
+    gtest
+    ${moveit_ros_planning_LIBRARIES}
+    ${catkin_LIBRARIES}
+    ${PROJECT_NAME}
+  )
 
   add_rostest_gtest(${PROJECT_NAME}_test_constraints_panda
     test/test_constraints_panda.rostest
