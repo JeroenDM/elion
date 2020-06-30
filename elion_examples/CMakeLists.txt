@@ -41,9 +41,9 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
-add_executable(${PROJECT_NAME}_panda_example  src/panda_example.cpp)
+add_executable(${PROJECT_NAME}_panda_example_2  src/panda_example_2.cpp)
 
-target_link_libraries(${PROJECT_NAME}_panda_example
+target_link_libraries(${PROJECT_NAME}_panda_example_2
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}_util
 )

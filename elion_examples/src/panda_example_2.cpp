@@ -117,10 +117,7 @@ int main(int argc, char** argv)
   // we will create two separate requests, one to test position constraints
   // and a second to test orientation constraints
   auto req1 = createPTPProblem(start_joint_values, goal_joint_values, robot_model, joint_model_group);
-  auto req2 = createPTPProblem(start_joint_values, goal_joint_values, robot_model, joint_model_group);
-  req1.allowed_planning_time = 5.0;
-  req2.allowed_planning_time = 5.0;
-
+  // req1.allowed_planning_time = 5.0;
   // Create and fill in the path constraints
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // We can add positoin constraints on the last link of the robot
@@ -130,32 +127,17 @@ int main(int argc, char** argv)
   std::vector<double> pos{ 0.3, 0.0, 0.65 };
   auto position_constraint = elion::createPositionConstraint(FIXED_FRAME, ee_link, dims, pos);
 
-  if (true)
-  {
-    // add a non-identity orientation to the position constraints.
-    tf2::Quaternion position_constraints_quat;
-    position_constraints_quat.setRPY(0.1, 0.7, 0);
-    position_constraint.constraint_region.primitive_poses[0].orientation = tf2::toMsg(position_constraints_quat);
 
-    // allow more time to find a solution because the problem turns out to be difficult
-    req1.allowed_planning_time = 50.0;
-  }
+  // add a non-identity orientation to the position constraints.
+  tf2::Quaternion position_constraints_quat;
+  position_constraints_quat.setRPY(0.1, 0.7, 0);
+  position_constraint.constraint_region.primitive_poses[0].orientation = tf2::toMsg(position_constraints_quat);
+
+  // allow more time to find a solution because the problem turns out to be difficult
+  req1.allowed_planning_time = 200.0;
+
 
   req1.path_constraints.position_constraints.push_back(position_constraint);
-
-  // Alternatively we can add orientation constraints on this last link
-  // (position and orientation constraints at the same time are not supported yet)
-  tf2::Quaternion desired_orientation;
-  desired_orientation.setRPY(0, M_PI_2, 0); /** Todo, use intrinsic xyz as in MoveIt's constraitns. */
-  std::vector<double> tolerance{ 0.1, 0.1, -1.0 };
-  auto orientation_constraint =
-      elion::createOrientationConstraint(FIXED_FRAME, ee_link, tolerance, desired_orientation);
-  req2.path_constraints.orientation_constraints.push_back(orientation_constraint);
-
-  // for orientation constraints we use a really ugly hack to specify what type
-  // of orientation error we want to use (there are 2 options at the moment).
-  req2.path_constraints.name = "AngleAxis";
-  // req.path_constraints.name = "RollPitchYaw";
 
   // Visualization
   // ^^^^^^^^^^^^^
@@ -190,23 +172,6 @@ int main(int argc, char** argv)
   {
     ROS_INFO_STREAM("Path found for position constraints of length: " << res1.trajectory_->getWayPointCount());
     visuals.displaySolution(res1, joint_model_group, false);
-  }
-
-  planning_interface::MotionPlanResponse res2;
-  auto context2 = planner_instance->getPlanningContext(planning_scene, req2, res2.error_code_);
-  if (context2)
-  {
-    success = context2->solve(res2);
-  }
-  else
-  {
-    ROS_INFO_STREAM("Failed to create planning constext for the second problem.");
-  }
-  if (res2.trajectory_)
-  {
-    ros::Duration(2.0).sleep();  // wait to make sure the previous solution was shown
-    ROS_INFO_STREAM("Path found for position constraints of length: " << res2.trajectory_->getWayPointCount());
-    visuals.displaySolution(res2, joint_model_group, true);
   }
 
   ros::shutdown();
