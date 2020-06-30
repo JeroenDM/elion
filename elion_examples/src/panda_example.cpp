@@ -129,6 +129,18 @@ int main(int argc, char** argv)
   std::vector<double> dims{ 0.1, 0.6, 0.1 };
   std::vector<double> pos{ 0.3, 0.0, 0.65 };
   auto position_constraint = elion::createPositionConstraint(FIXED_FRAME, ee_link, dims, pos);
+
+  if (true)
+  {
+    // add a non-identity orientation to the position constraints.
+    tf2::Quaternion position_constraints_quat;
+    position_constraints_quat.setRPY(0.1, 0.7, 0);
+    position_constraint.constraint_region.primitive_poses[0].orientation = tf2::toMsg(position_constraints_quat);
+
+    // allow more time to find a solution because the problem turns out to be difficult
+    req1.allowed_planning_time = 50.0;
+  }
+
   req1.path_constraints.position_constraints.push_back(position_constraint);
 
   // Alternatively we can add orientation constraints on this last link
@@ -192,12 +204,11 @@ int main(int argc, char** argv)
   }
   if (res2.trajectory_)
   {
-    ros::Duration(2.0).sleep(); // wait to make sure the previous solution was shown
+    ros::Duration(2.0).sleep();  // wait to make sure the previous solution was shown
     ROS_INFO_STREAM("Path found for position constraints of length: " << res2.trajectory_->getWayPointCount());
     visuals.displaySolution(res2, joint_model_group, true);
   }
 
- 
   ros::shutdown();
   return 0;
 }
