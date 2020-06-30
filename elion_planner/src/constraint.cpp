@@ -64,19 +64,22 @@ void BaseConstraint::function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen:
 
 void BaseConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const
 {
-  // !! ASSUME out is filled with zeros by default !!
   auto current_values = calcError(x);
   auto current_jacobian = calcErrorJacobian(x);
 
   for (std::size_t i{ 0 }; i < bounds_.size(); ++i)
   {
-    if (current_values[i] > bounds_[i].upper)
+    if (current_values[i] > bounds_[i].upper + getTolerance())
     {
       out.row(i) = current_jacobian.row(i);
     }
-    else if (current_values[i] < bounds_[i].lower)
+    else if (current_values[i] < bounds_[i].lower - getTolerance())
     {
       out.row(i) = -current_jacobian.row(i);
+    }
+    else
+    {
+      out.row(i) = Eigen::VectorXd::Zero(n_);
     }
   }
 }
