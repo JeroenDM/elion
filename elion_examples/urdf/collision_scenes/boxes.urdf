@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<robot name="table_with_blocks" xmlns:xacro="http://wiki.ros.org/xacro">
+
+<link name="base_link"/>
+
+<link name="table">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.5 0.25 0.1"/>
+    </geometry>
+    <material name="green"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.5 0.25 0.1"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="base_link_to_table" type="fixed">
+  <parent link="base_link"/>
+  <child link="table"/>
+  <origin xyz="0.85 0.25 0.13" rpy="0 0 0" />
+</joint>
+
+<link name="block1">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.1 0.1 0.1"/>
+    </geometry>
+    <material name="green"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.1 0.1 0.1"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="block2">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.1 0.1 0.1"/>
+    </geometry>
+    <material name="green"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.1 0.1 0.1"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="base_link_to_block1" type="fixed">
+  <parent link="base_link"/>
+  <child link="block1"/>
+  <origin xyz="0.85 -0.1 0.08" rpy="0 0 0" />
+</joint>
+
+<joint name="base_link_to_block2" type="fixed">
+  <parent link="base_link"/>
+  <child link="block2"/>
+  <origin xyz="0.85 -0.1 0.32" rpy="0 0 0" />
+</joint>
+
+</robot>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot name="panda_1" xmlns:xacro="http://wiki.ros.org/xacro">
+
+<link name="panda_link0"/>
+
+<link name="table">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.1 0.1 0.3"/>
+    </geometry>
+    <material name="green"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.1 0.1 0.3"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="panda_link0_to_table" type="fixed">
+  <parent link="panda_link0"/>
+  <child link="table"/>
+  <origin xyz="0.5 0 0.6" rpy="0 0 0" />
+</joint>
+
+</robot>
