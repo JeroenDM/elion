@@ -67,6 +67,11 @@ public:
   ros::Publisher display_publisher;
 };
 
+planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>& start,
+                                                       const std::vector<double>& goal,
+                                                       robot_model::RobotModelPtr& robot_model,
+                                                       const robot_state::JointModelGroup* joint_model_group);
+
 }  // namespace elion
 
 #endif  // ELION_EXAMPLES_UTIL_H

@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(jsoncpp REQUIRED)
+
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_msgs
@@ -60,4 +62,12 @@ add_executable(${PROJECT_NAME}_kuka_example_with_collision  src/kuka_example_wit
 target_link_libraries(${PROJECT_NAME}_kuka_example_with_collision
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}_util
+)
+
+add_executable(elion_run_example  src/run_example.cpp)
+
+target_link_libraries(elion_run_example
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}_util
+  jsoncpp_lib
 )

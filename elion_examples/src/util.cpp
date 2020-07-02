@@ -9,6 +9,7 @@
 #include <moveit_msgs/Constraints.h>
 #include <geometry_msgs/Quaternion.h>
 
+#include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
 
 #include <tf2_eigen/tf2_eigen.h>
@@ -163,18 +164,42 @@ void Visuals::displaySolution(planning_interface::MotionPlanResponse res,
   rvt_->trigger();
   display_publisher.publish(display_trajectory);
 
-  const std::vector<std::string> &link_model_names = joint_model_group->getLinkModelNames();
-  if (withOrientation) 
+  const std::vector<std::string>& link_model_names = joint_model_group->getLinkModelNames();
+  if (withOrientation)
   {
-    for (int k = 0; k < res.trajectory_->getWayPointCount(); ++k) 
+    for (int k = 0; k < res.trajectory_->getWayPointCount(); ++k)
     {
       geometry_msgs::Pose pose_msg;
-      const Eigen::Isometry3d &end_effector_transform = res.trajectory_->getWayPoint(k).getGlobalLinkTransform(link_model_names.back());
+      const Eigen::Isometry3d& end_effector_transform =
+          res.trajectory_->getWayPoint(k).getGlobalLinkTransform(link_model_names.back());
       pose_msg = tf2::toMsg(end_effector_transform);
       rvt_->publishAxis(pose_msg);
     }
     rvt_->trigger();
   }
+}
+
+planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>& start,
+                                                       const std::vector<double>& goal,
+                                                       robot_model::RobotModelPtr& robot_model,
+                                                       const robot_state::JointModelGroup* joint_model_group)
+{
+  planning_interface::MotionPlanRequest req;
+  req.group_name = joint_model_group->getName();
+
+  // fill out start state in request
+  robot_state::RobotState start_state(robot_model);
+  start_state.setJointGroupPositions(joint_model_group, start);
+  moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
+
+  // fill out goal state in request
+  robot_state::RobotState goal_state(robot_model);
+  goal_state.setJointGroupPositions(joint_model_group, goal);
+  moveit_msgs::Constraints joint_goal = kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group);
+  req.goal_constraints.clear();
+  req.goal_constraints.push_back(joint_goal);
+
+  return req;
 }
 
 }  // namespace elion
