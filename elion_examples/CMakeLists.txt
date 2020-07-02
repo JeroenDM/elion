@@ -61,3 +61,10 @@ target_link_libraries(${PROJECT_NAME}_kuka_example_with_collision
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}_util
 )
+
+add_executable(psm_minimal_example  src/psm_minimal_example.cpp)
+
+target_link_libraries(psm_minimal_example
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}_util
+)

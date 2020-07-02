@@ -1,0 +1,5 @@
+ <launch>
+
+    <node name="elion_panda_example" pkg="elion_examples" type="psm_minimal_example" output="screen"/>
+
+</launch>
