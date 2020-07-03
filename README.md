@@ -31,12 +31,29 @@ catkin build
 source devel/setup.bash
 ```
 
+**Note**: for the examples below, I recommend building in release mode. Especially planning with collision objects is slow (+100 seconds) at the moment. In debug mode you need a lot of patience to get a solution :)
+```bash
+catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+```
+
 ## Run examples
-With the build explained above complete, you can run the panda example:
+Planning problems are configured through a json file. Examples are present in the folder `elion_examples/config/...`. To run an example, first launch the MoveIt configuration for a specific robot. All examples with a name `panda_xxxx.json` use the panda robot. The examples package contains a specific launch file to properly configure Rviz.
+
 ```bash
 roslaunch elion_examples panda_example.launch 
 ```
-Now Rviz should come up and the script will start executing two planning requests. One with position constraints and one with orientation constraints.
+
+Examples with a name `kuka_xxxx.json` use the Kuka KR5 Arc robot. The configuration is available in [kuka_test_resources](https://github.com/JeroenDM/kuka_test_resources.git).
+
+```bash
+roslaunch kuka_kr5_moveit_config demo.launch 
+```
+
+When Rviz is visible and the move group node is ready, you can run an example, for example `panda_pos_con.json` does some simple planning with position constraints:
+
+```bash
+rosrun elion_examples elion_run_example panda_1.json
+```
 
 ![panda_example](doc/panda_example.gif)
 
