@@ -132,6 +132,34 @@ std::vector<double> jsonToVector(const Json::Value& json_value)
   return vec;
 }
 
+geometry_msgs::Pose jsonToPoseMsg(const Json::Value& json_value)
+{
+  std::vector<double> position{ jsonToVector(json_value["xyz"]) };
+  std::vector<double> orientation{ jsonToVector(json_value["rpy"]) };
+
+  geometry_msgs::Pose pose;
+  if (position.size() != 3)
+  {
+    ROS_ERROR_STREAM("Pose xyz (nominal position) should have length 3, not " << position.size());
+    return pose;
+  }
+
+  if (orientation.size() != 3)
+  {
+    ROS_ERROR_STREAM("Pose rpy (nominal orientation) should have length 3, not " << orientation.size());
+    return pose;
+  }
+
+  tf2::Quaternion quat;
+  quat.setRPY(orientation[0], orientation[1], orientation[2]);
+  pose.orientation = tf2::toMsg(quat);
+  pose.position.x = position[0];
+  pose.position.y = position[1];
+  pose.position.z = position[2];
+
+  return pose;
+}
+
 moveit_msgs::PositionConstraint readPositionConstraint(const Json::Value& con, const std::string fixed_frame)
 {
   const std::string ee_link = con.get("link_name", {}).asString();

@@ -9,6 +9,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/Constraints.h>
 #include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/Pose.h>
 
 #include <ros/node_handle.h>
 #include <moveit_visual_tools/moveit_visual_tools.h>
@@ -45,6 +46,8 @@ moveit_msgs::OrientationConstraint createOrientationConstraint(const std::string
                                                                tf2::Quaternion& nominal_orientation);
 
 std::vector<double> jsonToVector(const Json::Value& json_value);
+
+geometry_msgs::Pose jsonToPoseMsg(const Json::Value& json_value);
 
 moveit_msgs::PositionConstraint readPositionConstraint(const Json::Value& con, const std::string fixed_frame);
 

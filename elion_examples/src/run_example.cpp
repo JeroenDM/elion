@@ -14,9 +14,77 @@
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MotionPlanResponse.h>
 
+#include <moveit/robot_state/conversions.h>
+#include <moveit/kinematic_constraints/utils.h>
+
 #include "elion_examples/util.h"
 
 const std::string BASE_CLASS = "planning_interface::PlannerManager";
+
+planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>& start,
+                                                       const std::vector<double>& goal,
+                                                       robot_model::RobotModelPtr& robot_model,
+                                                       const robot_state::JointModelGroup* joint_model_group,
+                                                       elion::Visuals& visuals)
+{
+  planning_interface::MotionPlanRequest req;
+  req.group_name = joint_model_group->getName();
+
+  // fill out start state in request
+  robot_state::RobotState start_state(robot_model);
+  start_state.setJointGroupPositions(joint_model_group, start);
+  moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
+
+  // fill out goal state in request
+  robot_state::RobotState goal_state(robot_model);
+  goal_state.setJointGroupPositions(joint_model_group, goal);
+  moveit_msgs::Constraints joint_goal = kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group);
+  req.goal_constraints.clear();
+  req.goal_constraints.push_back(joint_goal);
+
+  // I don't know I nice way to publish two robot states at once with MoveIt visual tools
+  // Therefore I just put a pause in between to show them both in sequence.
+  visuals.rvt_->publishRobotState(start, joint_model_group, rviz_visual_tools::GREEN);
+  visuals.rvt_->trigger();
+  ros::Duration(1.0).sleep();
+  visuals.rvt_->publishRobotState(goal, joint_model_group, rviz_visual_tools::ORANGE);
+  visuals.rvt_->trigger();
+
+  return req;
+}
+
+planning_interface::MotionPlanRequest createPTPProblem(geometry_msgs::Pose& start_pose, geometry_msgs::Pose& goal_pose,
+                                                       robot_model::RobotModelPtr& robot_model,
+                                                       const robot_state::JointModelGroup* joint_model_group,
+                                                       elion::Visuals& visuals)
+{
+  planning_interface::MotionPlanRequest req;
+  req.group_name = joint_model_group->getName();
+
+  // fill out start state in request
+  robot_state::RobotState start_state(robot_model);
+  bool success = start_state.setFromIK(joint_model_group, start_pose);
+  ROS_INFO_STREAM("Start pose IK: " << (success ? "succeeded." : "failed."));
+  moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
+
+  // fill out goal state in request
+  robot_state::RobotState goal_state(start_state);
+  success = goal_state.setFromIK(joint_model_group, goal_pose);
+  ROS_INFO_STREAM("Goal pose IK: " << (success ? "succeeded." : "failed."));
+  moveit_msgs::Constraints joint_goal = kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group);
+  req.goal_constraints.clear();
+  req.goal_constraints.push_back(joint_goal);
+
+  // I don't know I nice way to publish two robot states at once with MoveIt visual tools
+  // Therefore I just put a pause in between to show them both in sequence.
+  visuals.rvt_->publishRobotState(start_state, rviz_visual_tools::GREEN);
+  visuals.rvt_->trigger();
+  ros::Duration(1.5).sleep();
+  visuals.rvt_->publishRobotState(goal_state, rviz_visual_tools::ORANGE);
+  visuals.rvt_->trigger();
+
+  return req;
+}
 
 int main(int argc, char** argv)
 {
@@ -79,31 +147,42 @@ int main(int argc, char** argv)
   auto planning_scene = std::make_shared<planning_scene::PlanningScene>(robot_model);
   planning_scene->getCurrentStateNonConst().setToDefaultValues(joint_model_group, "ready");
 
-  // Create the planning request
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-  std::vector<double> start_joint_values{ elion::jsonToVector(root["start"]["values"]) };
-  std::vector<double> goal_joint_values{ elion::jsonToVector(root["goal"]["values"]) };
-
-  auto req1 = elion::createPTPProblem(start_joint_values, goal_joint_values, robot_model, joint_model_group);
-  req1.path_constraints = elion::readPathConstraints(root["constraints"], fixed_frame);
-
-  req1.allowed_planning_time = robot_config.get("allowed_planning_time", 5.0).asDouble();
-
   // Visualization
   // ^^^^^^^^^^^^^
   elion::Visuals visuals(fixed_frame, node_handle);
 
-  // I don't know I nice way to publish two robot states at once with MoveIt visual tools
-  // Therefore I just put a pause in between to show them both in sequence.
-  visuals.rvt_->publishRobotState(req1.start_state.joint_state.position, joint_model_group, rviz_visual_tools::GREEN);
-  visuals.rvt_->trigger();
-  ros::Duration(0.5).sleep();
-  visuals.rvt_->publishRobotState(goal_joint_values, joint_model_group, rviz_visual_tools::ORANGE);
-  visuals.rvt_->trigger();
-
   visuals.rvt_->deleteAllMarkers();
   visuals.rvt_->trigger();
+
+  // Create the planning request
+  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  // figure out whether start and goal state are given as joint values or end-effector poses
+  // TODO this could be moved to the createPTPProblem function
+  std::string start_type{ root["start"].get("type", {}).asString() };
+  std::string goal_type{ root["goal"].get("type", {}).asString() };
+
+  moveit_msgs::MotionPlanRequest req1;
+  if (start_type == "joint_values" && goal_type == "joint_values")
+  {
+    std::vector<double> start{ elion::jsonToVector(root["start"]["values"]) };
+    std::vector<double> goal{ elion::jsonToVector(root["goal"]["values"]) };
+    req1 = createPTPProblem(start, goal, robot_model, joint_model_group, visuals);
+  }
+  else if (start_type == "pose" && goal_type == "pose")
+  {
+    auto start_pose = elion::jsonToPoseMsg(root["start"]);
+    auto goal_pose = elion::jsonToPoseMsg(root["goal"]);
+    req1 = createPTPProblem(start_pose, goal_pose, robot_model, joint_model_group, visuals);
+  }
+  else
+  {
+    ROS_ERROR_STREAM("Unkown type of start or goal type: " << start_type << ", " << goal_type);
+  }
+
+  req1.path_constraints = elion::readPathConstraints(root["constraints"], fixed_frame);
+
+  req1.allowed_planning_time = robot_config.get("allowed_planning_time", 5.0).asDouble();
 
   if (req1.path_constraints.position_constraints.size() > 0)
     visuals.showPositionConstraints(req1.path_constraints.position_constraints.at(0));
