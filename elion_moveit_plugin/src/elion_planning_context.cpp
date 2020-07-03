@@ -40,7 +40,7 @@ bool ElionPlanningContext::solve(planning_interface::MotionPlanResponse& res)
     // or cast joint positions from std vector to Eigen?
   }
 
-  ROS_INFO_STREAM("Start state: " << start_joint_positions);
+  // ROS_INFO_STREAM("Start state: " << start_joint_positions);
 
   // extract goal from planning request
   Eigen::VectorXd goal_joint_positions(num_dofs_);
@@ -48,11 +48,11 @@ bool ElionPlanningContext::solve(planning_interface::MotionPlanResponse& res)
   std::size_t joint_index{ 0 };
   for (auto& joint_constraint : request_.goal_constraints[0].joint_constraints)
   {
-    ROS_INFO_STREAM("name: " << joint_constraint.joint_name << " value: " << joint_constraint.position);
+    // ROS_INFO_STREAM("name: " << joint_constraint.joint_name << " value: " << joint_constraint.position);
     goal_joint_positions[joint_index] = joint_constraint.position;
     joint_index++;
   }
-  ROS_INFO_STREAM("goal state: " << goal_joint_positions);
+  // ROS_INFO_STREAM("goal state: " << goal_joint_positions);
 
   elion_planner_->preSolve(robot_model_, joint_model_group_->getName(), getPlanningScene(), request_);
 
