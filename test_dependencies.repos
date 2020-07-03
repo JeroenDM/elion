@@ -3,3 +3,7 @@ repositories:
     type: git
     url: https://github.com/JeroenDM/kuka_test_resources.git
     version: master
+  benchmark_planning_setups:
+    type: git
+    url: https://github.com/JeroenDM/benchmark_planning_setups.git
+    version: master
