@@ -41,6 +41,7 @@ add_library(
 target_link_libraries(
   ${PROJECT_NAME}_util
   ${catkin_LIBRARIES}
+  jsoncpp_lib
 )
 
 add_executable(${PROJECT_NAME}_panda_example_2  src/panda_example_2.cpp)

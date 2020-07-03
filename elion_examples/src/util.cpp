@@ -4,6 +4,7 @@
 #include <string>
 #include <pluginlib/class_loader.h>
 #include <boost/scoped_ptr.hpp>
+#include <jsoncpp/json/json.h>
 
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/Constraints.h>
@@ -114,12 +115,136 @@ moveit_msgs::OrientationConstraint createOrientationConstraint(const std::string
   return createOrientationConstraint(base_link, ee_link_name, rotation_tolerance, quat);
 }
 
+std::vector<double> jsonToVector(const Json::Value& json_value)
+{
+  std::vector<double> vec;
+  if (!json_value.isArray())
+  {
+    ROS_ERROR_STREAM("Trying to read json string as vector, but it's not...");
+  }
+  else
+  {
+    for (auto val : json_value)
+    {
+      vec.push_back(val.asDouble());
+    }
+  }
+  return vec;
+}
+
+moveit_msgs::PositionConstraint readPositionConstraint(const Json::Value& con, const std::string fixed_frame)
+{
+  const std::string ee_link = con.get("link_name", {}).asString();
+  std::vector<double> dimensions{ jsonToVector(con["dims"]) };
+  std::vector<double> nominal_position{ jsonToVector(con["xyz"]) };
+  std::vector<double> nominal_orientation{ jsonToVector(con["rpy"]) };
+
+  moveit_msgs::PositionConstraint position_constraint;
+  if (dimensions.size() != 3)
+  {
+    ROS_ERROR_STREAM("Position constraint dimensions should have length 3, not " << dimensions.size());
+    return position_constraint;
+  }
+
+  if (nominal_position.size() != 3)
+  {
+    ROS_ERROR_STREAM("Position constraint xyz (nominal position) should have length 3, not "
+                     << nominal_position.size());
+    return position_constraint;
+  }
+
+  if (nominal_orientation.size() != 3)
+  {
+    ROS_ERROR_STREAM("Position constraint rpy (nominal orientation) should have length 3, not "
+                     << nominal_orientation.size());
+    return position_constraint;
+  }
+
+  shape_msgs::SolidPrimitive box_constraint;
+  box_constraint.type = shape_msgs::SolidPrimitive::BOX;
+  box_constraint.dimensions = dimensions; /* use -1 to indicate no constraints. */
+
+  geometry_msgs::Pose box_pose;
+  box_pose.position.x = nominal_position[0];
+  box_pose.position.y = nominal_position[1];
+  box_pose.position.z = nominal_position[2];
+
+  tf2::Quaternion nominal_orientation_quat;
+  nominal_orientation_quat.setRPY(nominal_orientation[0], nominal_orientation[1], nominal_orientation[2]);
+  box_pose.orientation = tf2::toMsg(nominal_orientation_quat);
+
+  position_constraint.header.frame_id = fixed_frame;
+  position_constraint.link_name = ee_link;
+  position_constraint.constraint_region.primitives.push_back(box_constraint);
+  position_constraint.constraint_region.primitive_poses.push_back(box_pose);
+
+  return position_constraint;
+}
+
+moveit_msgs::OrientationConstraint readOrientationConstraints(const Json::Value& con, const std::string fixed_frame)
+{
+  const std::string ee_link = con.get("link_name", {}).asString();
+  std::vector<double> nominal_orientation{ jsonToVector(con["rpy"]) };
+  std::vector<double> tolerance{ jsonToVector(con["tolerance"]) };
+
+  moveit_msgs::OrientationConstraint orientation_constraint;
+  if (tolerance.size() != 3)
+  {
+    ROS_ERROR_STREAM("Orientation constraint tolerance should have length 3, not " << tolerance.size());
+    return orientation_constraint;
+  }
+
+  if (nominal_orientation.size() != 3)
+  {
+    ROS_ERROR_STREAM("Orientation constraint rpy (nominal orientation) should have length 3, not "
+                     << nominal_orientation.size());
+    return orientation_constraint;
+  }
+
+  orientation_constraint.header.frame_id = fixed_frame;
+  orientation_constraint.link_name = ee_link;
+
+  tf2::Quaternion nominal_orientation_quat;
+  nominal_orientation_quat.setRPY(nominal_orientation[0], nominal_orientation[1], nominal_orientation[2]);
+  orientation_constraint.orientation = tf2::toMsg(nominal_orientation_quat);
+
+  orientation_constraint.absolute_x_axis_tolerance = tolerance[0];
+  orientation_constraint.absolute_y_axis_tolerance = tolerance[1];
+  orientation_constraint.absolute_z_axis_tolerance = tolerance[2];
+
+  return orientation_constraint;
+}
+
+moveit_msgs::Constraints readPathConstraints(const Json::Value& json_constraints, const std::string fixed_frame)
+{
+  moveit_msgs::Constraints path_constraints;
+  for (auto constraint : json_constraints)
+  {
+    std::string constraint_type{ constraint.get("type", {}).asString() };
+    ROS_INFO_STREAM("Reading constraints of type: " << constraint_type);
+    if (constraint_type == "position")
+    {
+      path_constraints.position_constraints.push_back(readPositionConstraint(constraint, fixed_frame));
+    }
+    else if (constraint_type == "angle_axis")
+    {
+      path_constraints.orientation_constraints.push_back(readOrientationConstraints(constraint, fixed_frame));
+      path_constraints.name = "AngleAxis";
+    }
+    else
+    {
+      ROS_ERROR_STREAM("Unknown type of constraints: " << constraint_type);
+    }
+  }
+  return path_constraints;
+}
+
 Visuals::Visuals(const std::string& reference_frame, ros::NodeHandle& node_handle)
 {
   rvt_ = std::make_shared<moveit_visual_tools::MoveItVisualTools>(reference_frame, "/visualization_marker_array");
   rvt_->loadRobotStatePub("/display_robot_state");
   rvt_->enableBatchPublishing();
-  ros::Duration(0.1).sleep();
+  ros::Duration(0.5).sleep();
   rvt_->deleteAllMarkers();
   rvt_->trigger();
   display_publisher =
@@ -142,7 +267,7 @@ void Visuals::showPositionConstraints(moveit_msgs::PositionConstraint pos_con)
       dim = UNBOUNDED_SIZE;
   }
   rvt_->publishCuboid(pos_con.constraint_region.primitive_poses.at(0), dims.at(0), dims.at(1), dims.at(2),
-                      rviz_visual_tools::GREEN);
+                      rviz_visual_tools::BLUE);
   rvt_->trigger();
 }
 

@@ -4,7 +4,7 @@
         "fixed_frame": "panda_link0",
         "robot_description": "robot_description",
         "planning_plugin_name": "elion/ElionPlanner",
-        "allowed_planning_time": 7.0
+        "allowed_planning_time": 5.0
     },
     "start": {
         "type": "joint_values",
@@ -32,22 +32,17 @@
     },
     "constraints": [
         {
-            "type": "position",
+            "type": "angle_axis",
             "link_name": "panda_link8",
-            "xyz": [
-                0.3,
-                0.0,
-                0.65
-            ],
             "rpy": [
                 0.0,
-                0.0,
+                1.57079632679,
                 0.0
             ],
-            "dims": [
+            "tolerance": [
                 0.1,
-                0.6,
-                0.1
+                0.1,
+                -1.0
             ]
         }
     ]

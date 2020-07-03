@@ -3,6 +3,7 @@
 
 #include <pluginlib/class_loader.h>
 #include <boost/scoped_ptr.hpp>
+#include <jsoncpp/json/json.h>
 
 #include <ros/console.h>
 #include <moveit/planning_interface/planning_interface.h>
@@ -42,6 +43,14 @@ moveit_msgs::OrientationConstraint createOrientationConstraint(const std::string
                                                                const std::string& ee_link_name,
                                                                std::vector<double>& rotation_tolerance,
                                                                tf2::Quaternion& nominal_orientation);
+
+std::vector<double> jsonToVector(const Json::Value& json_value);
+
+moveit_msgs::PositionConstraint readPositionConstraint(const Json::Value& con, const std::string fixed_frame);
+
+moveit_msgs::OrientationConstraint readOrientationConstraints(const Json::Value& con, const std::string fixed_frame);
+
+moveit_msgs::Constraints readPathConstraints(const Json::Value& json_constraints, const std::string fixed_frame);
 
 /** Visuals groups everyting to do with showing stuff in Rviz
  * */
