@@ -1,0 +1,115 @@
+{
+    "config": {
+        "planning_group": "manipulator",
+        "fixed_frame": "base_link",
+        "robot_description": "robot_description",
+        "planning_plugin_name": "elion/ElionPlanner",
+        "allowed_planning_time": 100.0
+    },
+    "start": {
+        "type": "pose",
+        "xyz": [
+            0.8,
+            0.2,
+            0.2
+        ],
+        "rpy": [
+            0.0,
+            3.14159265359,
+            0.0
+        ]
+    },
+    "goal": {
+        "type": "pose",
+        "xyz": [
+            0.8,
+            -0.2,
+            0.2
+        ],
+        "rpy": [
+            0.0,
+            1.57079632679,
+            0.0
+        ]
+    },
+    "constraints": [
+        {
+            "type": "position",
+            "link_name": "tool0",
+            "xyz": [
+                0.8,
+                0.0,
+                0.2
+            ],
+            "rpy": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "dims": [
+                0.1,
+                0.4,
+                0.1
+            ]
+        }
+    ],
+    "collision_objects": [
+        {
+            "type": "cuboid",
+            "name": "box_1",
+            "xyz": [
+                0.85,
+                -0.1,
+                0.08
+            ],
+            "rpy": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "dims": [
+                0.1,
+                0.1,
+                0.1
+            ]
+        },
+        {
+            "type": "cuboid",
+            "name": "box_2",
+            "xyz": [
+                0.85,
+                -0.1,
+                0.32
+            ],
+            "rpy": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "dims": [
+                0.1,
+                0.1,
+                0.1
+            ]
+        },
+        {
+            "type": "cuboid",
+            "name": "table",
+            "xyz": [
+                0.85,
+                0.25,
+                0.13
+            ],
+            "rpy": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "dims": [
+                0.5,
+                0.25,
+                0.01
+            ]
+        }
+    ]
+}

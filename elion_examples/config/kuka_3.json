@@ -4,7 +4,7 @@
         "fixed_frame": "base_link",
         "robot_description": "robot_description",
         "planning_plugin_name": "elion/ElionPlanner",
-        "allowed_planning_time": 10.0
+        "allowed_planning_time": 200.0
     },
     "start": {
         "type": "pose",
@@ -28,7 +28,7 @@
         ],
         "rpy": [
             0.0,
-            1.57079632679,
+            3.14159265359,
             0.0
         ]
     },
@@ -47,8 +47,48 @@
                 0.0
             ],
             "dims": [
-                0.1,
+                0.05,
                 0.4,
+                0.05
+            ]
+        }
+    ],
+    "collision_objects": [
+        {
+            "type": "cuboid",
+            "name": "box_1",
+            "xyz": [
+                0.85,
+                0.0,
+                0.08
+            ],
+            "rpy": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "dims": [
+                0.1,
+                0.2,
+                0.1
+            ]
+        },
+        {
+            "type": "cuboid",
+            "name": "box_2",
+            "xyz": [
+                0.85,
+                0.0,
+                0.32
+            ],
+            "rpy": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "dims": [
+                0.1,
+                0.2,
                 0.1
             ]
         }

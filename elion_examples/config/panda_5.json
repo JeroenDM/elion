@@ -1,0 +1,70 @@
+{
+    "config": {
+        "planning_group": "panda_arm",
+        "fixed_frame": "panda_link0",
+        "robot_description": "robot_description",
+        "planning_plugin_name": "elion/ElionPlanner",
+        "allowed_planning_time": 20.0
+    },
+    "start": {
+        "type": "joint_values",
+        "values": [
+            0.666988104319289,
+            -0.9954030434136065,
+            -1.1194235704518019,
+            -1.9946073045682555,
+            -2.772101772642487,
+            3.4631937276027194,
+            -1.2160652080175647
+        ]
+    },
+    "goal": {
+        "type": "joint_values",
+        "values": [
+            1.7301680303369467,
+            -0.7342165592762893,
+            -0.5358506493073328,
+            -2.214051132383283,
+            -1.9148221683474542,
+            1.8324940020482856,
+            -1.588014538557859
+        ]
+    },
+    "constraints": [
+        {
+            "type": "angle_axis",
+            "link_name": "panda_link8",
+            "rpy": [
+                0.0,
+                1.57079632679,
+                0.0
+            ],
+            "tolerance": [
+                0.1,
+                0.1,
+                -1.0
+            ]
+        }
+    ],
+    "collision_objects": [
+        {
+            "type": "cuboid",
+            "name": "box_1",
+            "xyz": [
+                0.5,
+                0.0,
+                0.65
+            ],
+            "rpy": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "dims": [
+                0.1,
+                0.1,
+                0.3
+            ]
+        }
+    ]
+}

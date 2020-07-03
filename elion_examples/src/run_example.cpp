@@ -86,12 +86,34 @@ planning_interface::MotionPlanRequest createPTPProblem(geometry_msgs::Pose& star
   return req;
 }
 
+void readAndAddObstacles(const Json::Value& collision_objects, elion::Visuals& vis)
+{
+  for (auto object : collision_objects)
+  {
+    std::string name{ object.get("name", {}).asString() };
+    std::vector<double> dimensions{ elion::jsonToVector(object["dims"]) };
+
+    if (dimensions.size() != 3)
+    {
+      ROS_ERROR_STREAM("Collision object cubiod dimensions should have length 3, not " << dimensions.size());
+    }
+
+    geometry_msgs::Pose box1_pose;
+
+    box1_pose = elion::jsonToPoseMsg(object);
+
+    vis.rvt_->publishCollisionCuboid(box1_pose, dimensions[0], dimensions[1], dimensions[2], name,
+                                     rviz_visual_tools::GREEN);
+    vis.rvt_->trigger();
+  }
+}
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "elion_examples");
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  ros::NodeHandle node_handle;
+  ros::NodeHandle node_handle("~");
 
   // Read a configuration file
   // ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -144,8 +166,8 @@ int main(int argc, char** argv)
   elion::loadPlanningPlugin(planner_plugin_loader, planner_instance, robot_model, node_handle, BASE_CLASS,
                             planning_plugin_name);
 
-  auto planning_scene = std::make_shared<planning_scene::PlanningScene>(robot_model);
-  planning_scene->getCurrentStateNonConst().setToDefaultValues(joint_model_group, "ready");
+  // auto planning_scene = std::make_shared<planning_scene::PlanningScene>(robot_model);
+  // planning_scene->getCurrentStateNonConst().setToDefaultValues(joint_model_group, "ready");
 
   // Visualization
   // ^^^^^^^^^^^^^
@@ -153,6 +175,15 @@ int main(int argc, char** argv)
 
   visuals.rvt_->deleteAllMarkers();
   visuals.rvt_->trigger();
+
+  auto psm = visuals.rvt_->getPlanningSceneMonitor();
+
+  // Obstacles
+  // ^^^^^^^^^
+
+  readAndAddObstacles(root["collision_objects"], visuals);
+
+  psm->getPlanningScene()->printKnownObjects();
 
   // Create the planning request
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -192,7 +223,7 @@ int main(int argc, char** argv)
   bool success{ false };
 
   planning_interface::MotionPlanResponse res1;
-  auto context1 = planner_instance->getPlanningContext(planning_scene, req1, res1.error_code_);
+  auto context1 = planner_instance->getPlanningContext(psm->getPlanningScene(), req1, res1.error_code_);
   if (context1)
   {
     success = context1->solve(res1);
