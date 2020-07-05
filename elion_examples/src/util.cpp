@@ -243,6 +243,12 @@ moveit_msgs::OrientationConstraint readOrientationConstraints(const Json::Value&
   return orientation_constraint;
 }
 
+/** \Brief Parse orientation constraints from json file read with the library jsoncpp.
+ * 
+ * The error type for orientation constraints is specified in a hacky way as the name of the constraitns.
+ * For the strings identifying the types, see elion_planner/constraints.h in the namespace OrientationErrorType.
+ * 
+ * */
 moveit_msgs::Constraints readPathConstraints(const Json::Value& json_constraints, const std::string fixed_frame)
 {
   moveit_msgs::Constraints path_constraints;
@@ -258,6 +264,11 @@ moveit_msgs::Constraints readPathConstraints(const Json::Value& json_constraints
     {
       path_constraints.orientation_constraints.push_back(readOrientationConstraints(constraint, fixed_frame));
       path_constraints.name = "AngleAxis";
+    }
+    else if (constraint_type == "roll_pitch_yaw")
+    {
+      path_constraints.orientation_constraints.push_back(readOrientationConstraints(constraint, fixed_frame));
+      path_constraints.name = "RollPitchYaw";
     }
     else
     {
