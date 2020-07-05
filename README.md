@@ -1,4 +1,4 @@
-![CI](https://github.com/JeroenDM/elion/workflows/CI/badge.svg)
+![CI](https://github.com/JeroenDM/elion/workflows/CI/badge.svg?branch=phase1-old-stable)
 
 # elion
 
