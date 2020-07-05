@@ -180,6 +180,10 @@ Eigen::VectorXd RPYConstraints::calcError(const Eigen::Ref<const Eigen::VectorXd
   // or world frame. This implementation expressed the error in the end-effector frame.
   Eigen::Matrix3d error = forwardKinematics(x).rotation().transpose() * target_as_quat_;
   return error.eulerAngles(0, 1, 2);
+
+  // alternative, calculate difference of euler angles and try to live with singularities
+  // Eigen::Vector3d error = forwardKinematics(x).rotation().eulerAngles(0, 1, 2) - target_;
+  // return error;
 }
 
 Eigen::MatrixXd RPYConstraints::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const

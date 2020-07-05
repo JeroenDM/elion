@@ -180,6 +180,12 @@ public:
     : BaseConstraint(robot_model, group, num_dofs)
   {
   }
+
+  // void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override
+  // {
+  //   ob::Constraint::jacobian(x, out);
+  // }
+
   virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) override;
   virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
