@@ -39,6 +39,49 @@ TEST(AngularVelocityToRPYRates, numericalDerivative)
   }
 }
 
+TEST(AngularVelocityToAARates, numericalDerivative)
+{
+  const double h{ 1e-8 };  // interval with for forward finite difference
+
+  for (int i{ 0 }; i < 1; ++i)
+  {
+    // create random orientation and angular velocity
+    // Matrix3d rotation{ Quaterniond::UnitRandom() };
+    // auto omega{ Vector3d::Random().normalized() };
+
+    // use fixed values to make test repeatable
+    // Matrix3d rotation{ AngleAxisd(1.0, Vector3d(1, 1, 1).normalized()) };
+    // auto rotation = Matrix3d::Identity();
+    Matrix3d rotation{ AngleAxisd(M_PI_2, Vector3d::UnitX()) };
+    // Matrix3d rotation{ AngleAxisd(1.0, Vector3d(std::sqrt(2) / 2, std::sqrt(2) / 2, 0.0)) };
+    Vector3d omega;
+    // omega << 1.0, 0.0, 0.0;
+    omega << 0.0, 0.0, 0.1;
+
+    // apply angular velocity to the orientation for a time interval h
+    Matrix3d rotation_plus_h = AngleAxisd(h, omega) * rotation;
+
+    // calculate euler rates rates using forward difference approximation
+    Eigen::AngleAxisd aa(rotation);
+    Eigen::AngleAxisd aa_plus_h(rotation_plus_h);
+    Vector3d aa_dot_approx = (aa_plus_h.axis() * aa_plus_h.angle() - aa.axis() * aa.angle()) / h;
+
+    Vector3d aa_dot_exact = elion::angularVelocityToAngleAxis(aa.angle(), aa.axis()) * omega;
+
+    std::cout << "Exact: " << aa_dot_exact.transpose() << std::endl;
+    std::cout << "Approx: " << aa_dot_approx.transpose() << std::endl;
+
+    EXPECT_DOUBLE_EQ(aa_dot_exact[0], aa_dot_approx[0]);
+    EXPECT_DOUBLE_EQ(aa_dot_exact[1], aa_dot_approx[1]);
+    EXPECT_DOUBLE_EQ(aa_dot_exact[2], aa_dot_approx[2]);
+
+    // const double ERROR_TOLERANCE{ 1e-5 };
+    // EXPECT_LT(std::abs(aa_dot_exact[0] - aa_dot_approx[0]), ERROR_TOLERANCE);
+    // EXPECT_LT(std::abs(aa_dot_exact[1] - aa_dot_approx[1]), ERROR_TOLERANCE);
+    // EXPECT_LT(std::abs(aa_dot_exact[2] - aa_dot_approx[2]), ERROR_TOLERANCE);
+  }
+}
+
 /** Conversion of the angular velocity vector omega
  * to roll pitch yaw angles.
  * (intrinsic XYZ rotation angles.)
