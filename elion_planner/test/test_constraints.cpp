@@ -221,12 +221,12 @@ TEST_F(TestConstraints, RPYConstraintJacobian)
   constraint_->init(constraint_msgs);
 
   double total_error{ 999.9 };
-  const double ERROR_TOLERANCE{ 1e-4 }; /** High tolerance because of high finite difference error. **/
+  const double ERROR_TOLERANCE{ 1e-3 }; /** High tolerance because of high finite difference error. **/
   const int NUM_RANDOM_TESTS{ 10 };
 
   for (int i{ 0 }; i < NUM_RANDOM_TESTS; ++i)
   {
-    Eigen::VectorXd q = Eigen::VectorXd::Random(num_dofs_);
+    auto q = getRandomState();
     auto J_exact = constraint_->calcErrorJacobian(q);
     auto J_finite_diff = numericalJacobianRPY(q);
 
