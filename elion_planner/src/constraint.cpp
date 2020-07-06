@@ -152,6 +152,12 @@ Eigen::VectorXd AngleAxisConstraint::calcError(const Eigen::Ref<const Eigen::Vec
   return aa.axis() * angle;
 }
 
+Eigen::MatrixXd AngleAxisConstraint::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
+{
+  Eigen::AngleAxisd aa {forwardKinematics(x).rotation().transpose() * target_as_quat_};
+  return angularVelocityToAngleAxis(aa.angle(), aa.axis()) * geometricJacobian(x).bottomRows(3);
+}
+
 /******************************************
  * Roll, pitch, yaw orientation constraints
  * ****************************************/

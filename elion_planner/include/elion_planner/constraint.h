@@ -154,14 +154,14 @@ public:
   {
   }
 
-  void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override
-  {
-    ob::Constraint::jacobian(x, out);
-  }
+  // void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override
+  // {
+  //   ob::Constraint::jacobian(x, out);
+  // }
 
   virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) override;
   virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
-  // virtual Eigen::MatrixXd calcCurrentJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
+  virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
 
 private:
   Eigen::Quaterniond target_as_quat_;
