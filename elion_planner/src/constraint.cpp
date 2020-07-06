@@ -248,6 +248,14 @@ Eigen::VectorXd PoseConstraints::calcError(const Eigen::Ref<const Eigen::VectorX
   return error;
 }
 
+Eigen::MatrixXd PoseConstraints::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
+{
+  auto jac = geometricJacobian(x);
+  Eigen::AngleAxisd aa{ forwardKinematics(x).rotation() };
+  jac.bottomRows(3) = -angularVelocityToAngleAxis(aa.angle(), aa.axis()) * jac.bottomRows(3);
+  return jac.topRows(5);
+}
+
 /******************************************
  * Factory
  * ****************************************/
@@ -261,7 +269,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
 
   if (num_pos_con > 0 && num_ori_con > 0)
   {
-    ROS_ERROR_STREAM("Combining position and orientation constraints results in ignoring the z orientation tolerance value.");
+    ROS_ERROR_STREAM("Combining position and orientation constraints results in ignoring the z orientation tolerance "
+                     "value.");
     auto pose_con = std::make_shared<PoseConstraints>(robot_model, group, num_dofs);
     pose_con->init(constraints);
     return pose_con;

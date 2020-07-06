@@ -5,7 +5,7 @@
         "fixed_frame": "base_link",
         "robot_description": "robot_description",
         "planning_plugin_name": "elion/ElionPlanner",
-        "allowed_planning_time": 100.0
+        "allowed_planning_time": 500.0
     },
     "start": {
         "type": "pose",
