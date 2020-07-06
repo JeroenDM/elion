@@ -152,10 +152,13 @@ Eigen::VectorXd AngleAxisConstraint::calcError(const Eigen::Ref<const Eigen::Vec
   return aa.axis() * angle;
 }
 
+// mysterious minus sign in Jacobian, found through trial and error...
 Eigen::MatrixXd AngleAxisConstraint::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  Eigen::AngleAxisd aa {forwardKinematics(x).rotation().transpose() * target_as_quat_};
-  return angularVelocityToAngleAxis(aa.angle(), aa.axis()) * geometricJacobian(x).bottomRows(3);
+  // Eigen::AngleAxisd aa {forwardKinematics(x).rotation().transpose() * target_as_quat_};
+
+  Eigen::AngleAxisd aa{ forwardKinematics(x).rotation() };
+  return -angularVelocityToAngleAxis(aa.angle(), aa.axis()) * geometricJacobian(x).bottomRows(3);
 }
 
 /******************************************
