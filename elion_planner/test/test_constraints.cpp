@@ -275,6 +275,73 @@ TEST_F(TestConstraints, InitAngleAxisConstraint)
   constraint_->init(constraint_msgs);
 }
 
+TEST_F(TestConstraints, AngleAxisConstraintOMPLCheck)
+{
+  auto state_space = std::make_shared<ompl::base::RealVectorStateSpace>(num_dofs_);
+  ompl::base::RealVectorBounds bounds(num_dofs_);
+
+  // get joint limits from the joint model group
+  auto joint_limits = joint_model_group_->getActiveJointModelsBounds();
+  EXPECT_EQ(joint_limits.size(), num_dofs_);
+  for (std::size_t i{ 0 }; i < num_dofs_; ++i)
+  {
+    EXPECT_EQ(joint_limits[i]->size(), 1);
+    bounds.setLow(i, joint_limits[i]->at(0).min_position_);
+    bounds.setHigh(i, joint_limits[i]->at(0).max_position_);
+  }
+
+  state_space->setBounds(bounds);
+
+  moveit_msgs::Constraints constraint_msgs;
+  constraint_msgs.orientation_constraints.push_back(createOrientationConstraint(base_link_name_, ee_link_name_));
+
+  constraint_ = std::make_shared<elion::AngleAxisConstraint>(robot_model_, group_name_, num_dofs_);
+  constraint_->init(constraint_msgs);
+
+  auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, constraint_);
+
+  // constrained_state_space->constrainedSanityChecks(ompl::base::ConstrainedStateSpace::SanityChecks::CONSTRAINED_STATESPACE_JACOBIAN);
+  // I copied the Jacobian testing code from the sanityCheck below to investigate the problem
+
+  for (int i{ 0 }; i < NUM_RANDOM_TESTS; ++i)
+  {
+    auto* s1 = constrained_state_space->allocState()->as<ompl::base::ProjectedStateSpace::StateType>();
+    ompl::base::StateSamplerPtr ss = constrained_state_space->allocStateSampler();
+
+    ss->sampleUniform(s1);
+
+    Eigen::MatrixXd j_a(3, num_dofs_), j_n(3, num_dofs_);
+    constraint_->jacobian(*s1, j_a);              // Implemented in elion approximation
+    constraint_->Constraint::jacobian(*s1, j_n);  // Numerical approximation
+
+    // eliminate issues with the numerical jacobian at the bounds of the constraints
+    // because of the finite interval used for numerical differentiation,
+    // some function evaluation could be outside of the bounds and result in
+    // a non-zero constraint function
+    // I suspect this is what causes (rare) failures of the test without this fix
+    Eigen::Vector3d fun;
+    constraint_->function(*s1, fun);
+    for (std::size_t i{ 0 }; i < constraint_->getCoDimension(); ++i)
+    {
+      if (std::abs(fun[i]) < constraint_->getTolerance())
+      {
+        j_n.row(i) = Eigen::VectorXd::Zero(num_dofs_);
+      }
+    }
+
+    // std::cout << "Test for joint values: \n";
+    // std::cout << s1->transpose() << std::endl;
+    // std::cout << "End-effector position: \n";
+    // std::cout << fk(*s1).translation().transpose() << std::endl;
+    // std::cout << "Analytical jacobian: \n";
+    // std::cout << j_a << std::endl;
+    // std::cout << "Finite difference jacobian: \n";
+    // std::cout << j_n << std::endl;
+
+    EXPECT_LT((j_a - j_n).norm(), constraint_->getTolerance());
+  }
+}
+
 TEST_F(TestConstraints, InitRPYConstraint)
 {
   moveit_msgs::Constraints constraint_msgs;
