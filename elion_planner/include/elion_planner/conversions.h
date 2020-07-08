@@ -4,7 +4,7 @@
 
 namespace elion
 {
-/** Inverse of the Conversion matrix from roll-pitch-yaw velocity to angular velocity.
+/** \brief Inverse of the Conversion matrix from roll-pitch-yaw velocity to angular velocity.
  *
  * w = B(rpy) * rpy_dot
  * w = angular velocity, B = matrix returned by this function,
@@ -20,12 +20,12 @@ namespace elion
  * */
 Eigen::Matrix3d angularVelocityToRPYRates(double rx, double ry);
 
-/** Projection matrix to convert angular velocity in the world frame to
+/** \brief Conversion matrix to go from angular velocity in the world frame to
  * angle axis equivalent.
  *
  * Modern Robotics, page 161.
  *
- * TODO figure out how this works, and can I avoid the matrix inverse?
+ * @todo figure out how this works, and can I avoid the matrix inverse?
  * */
 Eigen::Matrix3d angularVelocityToAngleAxis(double angle, Eigen::Vector3d axis);
 

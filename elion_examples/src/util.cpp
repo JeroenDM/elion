@@ -243,7 +243,7 @@ moveit_msgs::OrientationConstraint readOrientationConstraints(const Json::Value&
   return orientation_constraint;
 }
 
-/** \Brief Parse orientation constraints from json file read with the library jsoncpp.
+/** \brief Parse orientation constraints from json file read with the library jsoncpp.
  * 
  * The error type for orientation constraints is specified in a hacky way as the name of the constraitns.
  * For the strings identifying the types, see elion_planner/constraints.h in the namespace OrientationErrorType.

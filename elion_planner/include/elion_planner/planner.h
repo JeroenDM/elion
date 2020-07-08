@@ -34,22 +34,27 @@ class ElionPlanner
 public:
   ElionPlanner();
 
+  /** \brief Create OMPL state space, simple setup and planner based on request. **/
   void preSolve(robot_model::RobotModelConstPtr robot_model, const std::string& group,
                 const planning_scene::PlanningSceneConstPtr& ps, planning_interface::MotionPlanRequest request);
 
-  /** directly pass joint positions for start and goal in this minimal example
+  /** \brief Solve the planning problem, directly pass joint positions for start and goal in this minimal example.
    *
-   * Should this be part of the preSolve setup?
+   * \todo Should this be part of the preSolve setup?
    * */
   bool solve(const Eigen::Ref<const Eigen::VectorXd>& start_joint_positions,
              const Eigen::Ref<const Eigen::VectorXd>& goal_joint_positions, double allowed_planning_time);
 
+  /** \brief Simplify solution and convert from OMPL to generic format.
+   *
+   * @todo too much Eigen copy operations.
+   **/
   void postSolve();
 
-  /** \Brief Check if the constraints are satisfied along the path `solution_path_`. **/
+  /** \brief Check if the constraints are satisfied along the path `solution_path_`. **/
   bool checkSolution();
 
-  /** TODO too much Eigen copy operations. */
+  /** \brief Get solution in a generic OMPL and ROS independent format. **/
   std::vector<Eigen::VectorXd> getSolutionPath()
   {
     return solution_path_;
@@ -64,8 +69,8 @@ private:
   std::shared_ptr<og::SimpleSetup> simple_setup_;
   std::shared_ptr<og::RRTConnect> planner_;
 
-  // TODO, this can be a ROS specific format
+  // @todo, this can be a ROS specific format
   std::vector<Eigen::VectorXd> solution_path_;
-  std::size_t num_dofs_; /* initialized in preSolve method based on robot model. */
+  std::size_t num_dofs_; /**< initialized in preSolve method based on robot model. */
 };
 }  // namespace elion

@@ -7,7 +7,7 @@
 
 namespace elion
 {
-/** Use Infinity unconstrained parameters
+/** \brief Use infinity for unconstrained parameters
  *
  * This makes it easier to write generic code.
  * Otherwise we would have to leave out the bounds for specific
@@ -15,12 +15,12 @@ namespace elion
  * evaluation would be much more complex, within my range
  * of solution I can imagine (jeroendm).
  *
- * TODO: we could also use the workspace size, this could be
+ * @todo: we could also use the workspace size, this could be
  * more appropriate than infinity.
  * */
 const double INF = std::numeric_limits<double>::infinity();
 
-/** Extract position constraints from the MoveIt message.
+/** \brief Extract position constraints from the MoveIt message.
  *
  * Assumes there is a single primitive of type box.
  * Only the dimensions of this box are used here.
@@ -28,12 +28,12 @@ const double INF = std::numeric_limits<double>::infinity();
  * the desired position given as the position of the box in the field
  * constraint_regions.primitive_poses[0].position.
  *
- * TODO: also use the link name in future?
+ * @todo: also use the link name in future?
  * Now we assume the constraints are for the end-effector link.
  * */
 std::vector<Bounds> positionConstraintMsgToBoundVector(moveit_msgs::PositionConstraint pos_con);
 
-/** Extract orientation constraints from the MoveIt message
+/** \brief Extract orientation constraints from the MoveIt message
  *
  * These bounds are assumed to be centered around the nominal orientation / desired orientation
  * given in the field "orientation" in the message.

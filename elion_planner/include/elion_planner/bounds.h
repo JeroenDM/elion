@@ -7,7 +7,7 @@
 
 namespace elion
 {
-/** \Brief Represents bounds on a scalar value (double).
+/** \brief Represents upper and lower bound on a scalar value (double).
  *
  * Equality constraints can be represented by setting
  * the upper bound and lower bound almost equal.
@@ -18,7 +18,7 @@ struct Bounds
 {
   double lower, upper;
 
-  /** \Brief Distance to region inside bounds
+  /** \brief Distance to region inside bounds
    *
    * Distance of a given value outside the bounds,
    * zero inside the bounds.
@@ -35,5 +35,5 @@ struct Bounds
 
 }  // namespace elion
 
-/** \Brief Pretty printing of bounds. **/
+/** Pretty printing of bounds. **/
 std::ostream& operator<<(std::ostream& os, const elion::Bounds& bound);

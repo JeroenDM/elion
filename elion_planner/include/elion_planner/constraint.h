@@ -13,21 +13,23 @@ namespace elion
 {
 namespace ob = ompl::base;
 
-/** \Brief Different calculation methods for orientation error.
- *
- * As I can only pass strings through MoveIt planning requests
- * it does not really work with enums of integral type.
- * Therefore I came up with this akward hack,
- * which I think is still better than magic with implicit casting.
- * This hack should result in almost the same syntax.
- * Is there name collision danger with QUATERNION?
- * */
 // enum class OrientationErrorType
 // {
 //   ROLL_PITCH_YAW,
 //   ANGLE_AXIS,
 //   QUATERNION
 // };
+
+/** \brief Different calculation methods for orientation error.
+ *
+ * As I can only pass strings through MoveIt planning requests
+ * it does not really work with enums of integral type.
+ * Therefore I came up with this akward hack,
+ * which I think is still better than magic with implicit casting.
+ * This hack should result in almost the same syntax.
+ *
+ * Is there name collision danger with QUATERNION?
+ * */
 namespace OrientationErrorType
 {
 const std::string ROLL_PITCH_YAW{ "RollPitchYaw" };
@@ -35,7 +37,7 @@ const std::string ANGLE_AXIS{ "AngleAxis" };
 const std::string QUATERION{ "Quaterion" };
 }  // namespace OrientationErrorType
 
-/** abstract base class for differen types of constraints
+/** \brief Abstract base class for differen types of constraints
  *
  * They all have bounds on some kind of error function,
  * this error function is the thing requirering specialization.
@@ -46,7 +48,7 @@ const std::string QUATERION{ "Quaterion" };
  * - calcError
  * - calcErrorJacobian
  *
- * TODO clean-up what is public / protected / private,
+ * @@todo clean-up what is public / protected / private,
  * I was being lax for debugging.
  * */
 class BaseConstraint : public ob::Constraint
@@ -55,7 +57,7 @@ public:
   BaseConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group, const unsigned int num_dofs,
                  const unsigned int num_cons_ = 3);
 
-  /** \Brief initialize constraint based on message content.
+  /** \brief initialize constraint based on message content.
    *
    * This is needed, because we cannot call the pure virtual
    * parseConstraintsMsg method from the constructor of this class.
@@ -79,7 +81,7 @@ public:
   void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override;
 
   // generic helper functions for robot kinematics.
-  // TODO Are these actually const, as the robot state is modified? How come it works?
+  // @todo Are these actually const, as the robot state is modified? How come it works?
   Eigen::Isometry3d forwardKinematics(const Eigen::Ref<const Eigen::VectorXd>& joint_values) const;
   Eigen::MatrixXd geometricJacobian(const Eigen::Ref<const Eigen::VectorXd>& joint_values) const;
 
@@ -98,7 +100,7 @@ public:
 
   /** Calculate the Jacobian for the current parameters that are being constraints.
    *
-   * TODO, maybe also provide output agruments similar to the jacobian function
+   * @todo, maybe also provide output agruments similar to the jacobian function
    * so we can default to ob::Constraint::jacobian(x, out) when needed.
    *
    * This is the Jacobian without the correction due to the penalty function
@@ -137,7 +139,7 @@ public:
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
 };
 
-/** \Brief orientation constraints based on angle-axis error.
+/** \brief orientation constraints based on angle-axis error.
  *
  * (aka exponential coordinates)
  * This class overrides the jacobian method directly,
@@ -166,7 +168,7 @@ private:
   Eigen::Quaterniond target_as_quat_;
 };
 
-/** Orientation constraints based on roll, pitch, yaw error
+/** \brief Orientation constraints based on roll, pitch, yaw error
  *
  * Constraints on roll, pitch, and yaw angle of the end-effector:
  * R = Rx(roll) * Ry(pitch) * Rz(yaw)
@@ -193,7 +195,7 @@ private:
   Eigen::Quaterniond target_as_quat_;
 };
 
-/** \Brief Position and orientation constraint
+/** \brief Position and orientation constraint
  *
  * Hardcoded implementation instead of using the class
  * ompl::base::ConstraintsIntersection
@@ -220,7 +222,7 @@ private:
   Eigen::Quaterniond target_as_quat_;
 };
 
-/** \Brief Factory to create constraints based on what is in the MoveIt constraint message. **/
+/** \brief Factory to create constraints based on what is in the MoveIt constraint message. **/
 std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
                                                  moveit_msgs::Constraints constraints);
 
