@@ -96,7 +96,10 @@ public:
    * In this Position constraints case, it calculates the x, y and z position
    * of the end-effector.
    * */
-  virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const = 0;
+  virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+  {
+    ROS_ERROR_STREAM("Constraint method calcError was not overridded, so it should not be used.");
+  }
 
   /** Calculate the Jacobian for the current parameters that are being constraints.
    *
@@ -217,6 +220,43 @@ public:
   virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) override;
   virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
   // virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
+
+private:
+  Eigen::Quaterniond target_as_quat_;
+};
+
+/** \brief hardcoded equality constraints on x and z position.
+ *
+ * To try out Atlas and Tangent Bundle constraint state space.
+ * */
+class XZPositionConstraint : public BaseConstraint
+{
+public:
+  XZPositionConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
+                       const unsigned int num_dofs)
+    : BaseConstraint(robot_model, group, num_dofs, 2)
+  {
+  }
+  virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) override;
+  virtual void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const override;
+  virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override;
+};
+
+/** \brief hardcoded equality constraints on x and y orientation (angle-axis representation).
+ *
+ * To try out Atlas and Tangent Bundle constraint state space.
+ * */
+class XYOrientationConstraint : public BaseConstraint
+{
+public:
+  XYOrientationConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
+                          const unsigned int num_dofs)
+    : BaseConstraint(robot_model, group, num_dofs, 2)
+  {
+  }
+  virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) override;
+  virtual void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const override;
+  virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override;
 
 private:
   Eigen::Quaterniond target_as_quat_;

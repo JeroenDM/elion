@@ -249,6 +249,69 @@ Eigen::VectorXd PoseConstraints::calcError(const Eigen::Ref<const Eigen::VectorX
 }
 
 /******************************************
+ * Equality constraints on X and Z position
+ * ****************************************/
+
+void XZPositionConstraint::parseConstraintMsg(moveit_msgs::Constraints constraints)
+{
+  bounds_.clear();
+  ROS_INFO_STREAM("Creating equality constraints, no bounds will be parsed.");
+
+  // extract target / nominal value
+  geometry_msgs::Point position =
+      constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
+  target_ << position.x, position.y, position.z;
+}
+
+void XZPositionConstraint::function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const
+{
+  out[0] = forwardKinematics(x).translation().x() - target_.x();
+  out[1] = forwardKinematics(x).translation().z() - target_.z();
+}
+
+void XZPositionConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const
+{
+  out.row(0) = geometricJacobian(x).row(0);
+  out.row(1) = geometricJacobian(x).row(2);
+}
+
+/*************************************************************************
+ * Equality constraints on X and Y orientation (angle-axis representation)
+ * ***********************************************************************/
+
+void XYOrientationConstraint::parseConstraintMsg(moveit_msgs::Constraints constraints)
+{
+  bounds_.clear();
+  ROS_INFO_STREAM("Creating equality constraints on orientation, no bounds will be parsed.");
+
+  // extract target / nominal value
+  tf::quaternionMsgToEigen(constraints.orientation_constraints.at(0).orientation, target_as_quat_);
+}
+
+void XYOrientationConstraint::function(const Eigen::Ref<const Eigen::VectorXd>& x,
+                                       Eigen::Ref<Eigen::VectorXd> out) const
+{
+  Eigen::AngleAxisd aa(forwardKinematics(x).rotation().transpose() * target_as_quat_);
+  out[0] = (aa.axis() * aa.angle()).x();
+  out[1] = (aa.axis() * aa.angle()).y();
+}
+
+void XYOrientationConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd>& x,
+                                       Eigen::Ref<Eigen::MatrixXd> out) const
+{
+  Eigen::AngleAxisd aa{ forwardKinematics(x).rotation() };
+  auto J = geometricJacobian(x);
+  out.row(0) = (-angularVelocityToAngleAxis(aa.angle(), aa.axis()) * J.bottomRows(3)).row(0);
+  out.row(1) = (-angularVelocityToAngleAxis(aa.angle(), aa.axis()) * J.bottomRows(3)).row(1);
+}
+
+// void XYOrientationConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd>& x,
+//                                        Eigen::Ref<Eigen::MatrixXd> out) const
+// {
+//   ob::Constraint::jacobian(x, out);
+// }
+
+/******************************************
  * Factory
  * ****************************************/
 
@@ -261,7 +324,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
 
   if (num_pos_con > 0 && num_ori_con > 0)
   {
-    ROS_ERROR_STREAM("Combining position and orientation constraints results in ignoring the z orientation tolerance value.");
+    ROS_ERROR_STREAM("Combining position and orientation constraints results in ignoring the z orientation tolerance "
+                     "value.");
     auto pose_con = std::make_shared<PoseConstraints>(robot_model, group, num_dofs);
     pose_con->init(constraints);
     return pose_con;
@@ -272,7 +336,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
     {
       ROS_ERROR_STREAM("Only a single position constraints supported. Using the first one.");
     }
-    auto pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
+    // auto pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
+    auto pos_con = std::make_shared<XZPositionConstraint>(robot_model, group, num_dofs);
     pos_con->init(constraints);
     return pos_con;
   }
@@ -286,7 +351,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
     if (constraints.name == OrientationErrorType::ANGLE_AXIS)
     {
       ROS_INFO_STREAM("Creating orientation constraints of type: " << constraints.name);
-      auto ori_con = std::make_shared<AngleAxisConstraint>(robot_model, group, num_dofs);
+      // auto ori_con = std::make_shared<AngleAxisConstraint>(robot_model, group, num_dofs);
+      auto ori_con = std::make_shared<XYOrientationConstraint>(robot_model, group, num_dofs);
       ori_con->init(constraints);
       return ori_con;
     }

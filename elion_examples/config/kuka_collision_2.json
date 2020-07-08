@@ -4,8 +4,8 @@
         "fixed_frame": "base_link",
         "robot_description": "robot_description",
         "planning_plugin_name": "elion/ElionPlanner",
-        "allowed_planning_time": 200.0,
-        "planner_id": "PRM"
+        "allowed_planning_time": 10.0,
+        "planner_id": "PRMstar"
     },
     "start": {
         "type": "pose",

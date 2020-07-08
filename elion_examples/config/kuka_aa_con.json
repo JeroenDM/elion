@@ -4,7 +4,8 @@
         "fixed_frame": "base_link",
         "robot_description": "robot_description",
         "planning_plugin_name": "elion/ElionPlanner",
-        "allowed_planning_time": 10.0
+        "allowed_planning_time": 10.0,
+        "planner_id": "PRMstar"
     },
     "start": {
         "type": "pose",
@@ -45,6 +46,27 @@
                 0.1,
                 0.1,
                 -1.0
+            ]
+        }
+    ],
+    "collision_objects": [
+        {
+            "type": "cuboid",
+            "name": "box_1",
+            "xyz": [
+                1.0,
+                0.0,
+                0.2
+            ],
+            "rpy": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "dims": [
+                0.4,
+                0.1,
+                0.1
             ]
         }
     ]
