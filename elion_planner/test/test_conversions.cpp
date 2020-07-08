@@ -40,13 +40,13 @@ TEST(AngularVelocityToRPYRates, numericalDerivative)
 }
 
 /** test conversion from angular velocity to angle axis velocity
- * 
+ *
  * TODO: the numerical derivative in this tests seems to cause an issue.
  * The test does not work for a angular velocity vector that is not normalized.
  * (But it should work, because this vector can have an arbitrary norm.)
  * I suspect the issue is related to the calculation of the numerical derivative
  * based on forward finite differences, but I'm not sure.
- * 
+ *
  * */
 TEST(AngularVelocityToAARates, numericalDerivative)
 {
@@ -57,7 +57,7 @@ TEST(AngularVelocityToAARates, numericalDerivative)
     // create random orientation and angular velocity
     Matrix3d rotation{ Quaterniond::UnitRandom() };
     // auto omega{ Vector3d::Random()};
-    auto omega{ Vector3d::Random().normalized()};
+    auto omega{ Vector3d::Random().normalized() };
     // omega *= 1.5;
 
     // use fixed values to make test repeatable

@@ -13,7 +13,7 @@ MoveItCollisionChecker::MoveItCollisionChecker(const ob::SpaceInformationPtr& si
 }
 bool MoveItCollisionChecker::isValid(const ob::State* state) const
 {
-  auto &&q = *state->as<ompl::base::ConstrainedStateSpace::StateType>();
+  auto&& q = *state->as<ompl::base::ConstrainedStateSpace::StateType>();
   collision_detection::CollisionResult res;
   moveit::core::RobotState* robot_state = tss_.getStateStorage();
   robot_state->setJointGroupPositions(group_name_, q);

@@ -1,5 +1,4 @@
-#ifndef ELION_BOUNDS_H
-#define ELION_BOUNDS_H
+#pragma once
 
 #include <iostream>
 #include <limits>
@@ -20,7 +19,7 @@ struct Bounds
   double lower, upper;
 
   /** \Brief Distance to region inside bounds
-   * 
+   *
    * Distance of a given value outside the bounds,
    * zero inside the bounds.
    *
@@ -38,5 +37,3 @@ struct Bounds
 
 /** \Brief Pretty printing of bounds. **/
 std::ostream& operator<<(std::ostream& os, const elion::Bounds& bound);
-
-#endif  // ELION_BOUNDS_H

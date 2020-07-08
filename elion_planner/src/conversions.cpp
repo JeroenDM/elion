@@ -35,7 +35,7 @@ Eigen::Matrix3d angularVelocityToAngleAxis(double angle, Eigen::Vector3d axis)
   Eigen::Matrix3d E;
 
   double t{ std::abs(angle) };
-  Eigen::Vector3d r{ axis * angle};
+  Eigen::Vector3d r{ axis * angle };
   Eigen::Matrix3d r_skew;
   r_skew << 0, -r[2], r[1], r[2], 0, -r[0], -r[1], r[0], 0;
 

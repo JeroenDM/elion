@@ -17,7 +17,8 @@ ElionPlanner::ElionPlanner()
 }
 
 void ElionPlanner::preSolve(robot_model::RobotModelConstPtr robot_model, const std::string& group,
-                            const planning_scene::PlanningSceneConstPtr& ps, planning_interface::MotionPlanRequest request)
+                            const planning_scene::PlanningSceneConstPtr& ps,
+                            planning_interface::MotionPlanRequest request)
 {
   num_dofs_ = robot_model->getJointModelGroup(group)->getVariableCount();
 

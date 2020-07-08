@@ -1,5 +1,4 @@
-#ifndef ELION_CONVERSIONS_H
-#define ELION_CONVERSIONS_H
+#pragma once
 
 #include <Eigen/Geometry>
 
@@ -23,9 +22,9 @@ Eigen::Matrix3d angularVelocityToRPYRates(double rx, double ry);
 
 /** Projection matrix to convert angular velocity in the world frame to
  * angle axis equivalent.
- * 
+ *
  * Modern Robotics, page 161.
- * 
+ *
  * TODO figure out how this works, and can I avoid the matrix inverse?
  * */
 Eigen::Matrix3d angularVelocityToAngleAxis(double angle, Eigen::Vector3d axis);
@@ -33,10 +32,10 @@ Eigen::Matrix3d angularVelocityToAngleAxis(double angle, Eigen::Vector3d axis);
 /** Get the sign of a number.
  * https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
  * */
-template <typename T> int sign(T val) {
-    return (T(0) < val) - (val < T(0));
+template <typename T>
+int sign(T val)
+{
+  return (T(0) < val) - (val < T(0));
 }
 
 }  // namespace elion
-
-#endif  // ELION_CONVERSIONS_H

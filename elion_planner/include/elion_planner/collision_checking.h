@@ -1,10 +1,9 @@
 /** OMPL specific wrapper of MoveIt's collision
  * checking interface.
  *
- * TODO!
+ * Minimal working version, no caching or anything fancy.
  * */
-#ifndef ELION_COLLISION_CHECKING_H
-#define ELION_COLLISION_CHECKING_H
+#pragma once
 
 #include <string>
 
@@ -42,5 +41,3 @@ private:
   const planning_scene::PlanningSceneConstPtr& ps_;
 };
 }  // namespace elion
-
-#endif  // ELION_COLLISION_CHECKING_H

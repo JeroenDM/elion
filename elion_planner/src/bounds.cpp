@@ -2,15 +2,15 @@
 
 namespace elion
 {
-  double Bounds::distance(double value) const
-  {
-    if (value < lower)
-      return lower - value;
-    else if (value > upper)
-      return value - upper;
-    else
-      return 0.0;
-  }
+double Bounds::distance(double value) const
+{
+  if (value < lower)
+    return lower - value;
+  else if (value > upper)
+    return value - upper;
+  else
+    return 0.0;
+}
 }  // namespace elion
 
 // TODO: not sure if this has to be outside namespace

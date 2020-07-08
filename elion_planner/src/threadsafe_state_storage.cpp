@@ -36,8 +36,7 @@
 
 #include <elion_planner/threadsafe_state_storage.h>
 
-elion::TSStateStorage::TSStateStorage(robot_model::RobotModelConstPtr& robot_model)
-  : start_state_(robot_model)
+elion::TSStateStorage::TSStateStorage(robot_model::RobotModelConstPtr& robot_model) : start_state_(robot_model)
 {
   start_state_.setToDefaultValues();
 }

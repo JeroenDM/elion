@@ -1,5 +1,4 @@
-#ifndef ELION_CONSTRAINTS_H
-#define ELION_CONSTRAINTS_H
+#pragma once
 
 #include <Eigen/Geometry>
 
@@ -226,5 +225,3 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
                                                  moveit_msgs::Constraints constraints);
 
 }  // namespace elion
-
-#endif  // ELION_CONSTRAINTS_H

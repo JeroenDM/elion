@@ -4,8 +4,7 @@
  * I would like to introduce the symbol q for joint_positions. this would make
  * a lot of code cleaner.
  * */
-#ifndef ELION_PLANNER_PLANNER_H
-#define ELION_PLANNER_PLANNER_H
+#pragma once
 
 #include <memory>
 
@@ -70,5 +69,3 @@ private:
   std::size_t num_dofs_; /* initialized in preSolve method based on robot model. */
 };
 }  // namespace elion
-
-#endif  // ELION_PLANNER_PLANNER_H
