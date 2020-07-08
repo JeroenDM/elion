@@ -8,6 +8,10 @@
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
 
+#include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
+#include <ompl/base/spaces/constraint/AtlasStateSpace.h>
+#include <ompl/base/spaces/constraint/TangentBundleStateSpace.h>
+
 #include "elion_planner/collision_checking.h"
 
 namespace elion
@@ -41,7 +45,14 @@ void ElionPlanner::preSolve(robot_model::RobotModelConstPtr robot_model, const s
     return;
   }
 
+  // Only projected state space works for how the constraints are forumulated now.
+  // Atlas and TangentBundle give exception:
+  //   ompl::base::AtlasStateSpace::newChart(): Failed because manifold looks degenerate here.
+  // constrained_state_space_ = std::make_shared<ob::TangentBundleStateSpace>(state_space_, constraints_);
+  // constrained_state_space_ = std::make_shared<ob::AtlasStateSpace>(state_space_, constraints_);
+
   constrained_state_space_ = std::make_shared<ob::ProjectedStateSpace>(state_space_, constraints_);
+
   constrained_state_space_info_ = std::make_shared<ob::ConstrainedSpaceInformation>(constrained_state_space_);
 
   simple_setup_ = std::make_shared<og::SimpleSetup>(constrained_state_space_info_);
@@ -63,6 +74,10 @@ bool ElionPlanner::solve(const Eigen::Ref<const Eigen::VectorXd>& start_joint_po
   start->as<ob::ConstrainedStateSpace::StateType>()->copy(start_joint_positions);
   goal->as<ob::ConstrainedStateSpace::StateType>()->copy(goal_joint_positions);
   simple_setup_->setStartAndGoalStates(start, goal);
+
+  // for Atlas and TangentBundle, the start and goal states have to be anchored.
+  // constrained_state_space_->as<ob::AtlasStateSpace>()->anchorChart(start.get());
+  // constrained_state_space_->as<ob::AtlasStateSpace>()->anchorChart(goal.get());
 
   // solving it
   simple_setup_->setup();

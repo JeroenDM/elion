@@ -15,7 +15,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/Constraint.h>
 #include <ompl/base/ConstrainedSpaceInformation.h>
-#include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
+#include <ompl/base/spaces/constraint/ConstrainedStateSpace.h>
 
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/base/Planner.h>
@@ -68,7 +68,7 @@ private:
   std::shared_ptr<ob::RealVectorStateSpace> state_space_;
   std::shared_ptr<BaseConstraint> constraints_;
 
-  std::shared_ptr<ob::ProjectedStateSpace> constrained_state_space_;
+  std::shared_ptr<ob::ConstrainedStateSpace> constrained_state_space_;
   std::shared_ptr<ob::ConstrainedSpaceInformation> constrained_state_space_info_;
   std::shared_ptr<og::SimpleSetup> simple_setup_;
   std::shared_ptr<ob::Planner> planner_;
