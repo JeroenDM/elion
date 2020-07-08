@@ -1,0 +1,6 @@
+<map id="elion::BaseConstraint" name="elion::BaseConstraint">
+<area shape="rect" id="node3" href="$classelion_1_1AngleAxisConstraint.html" title="orientation constraints based on angle&#45;axis error. " alt="" coords="352,5,528,32"/>
+<area shape="rect" id="node4" href="$classelion_1_1PoseConstraints.html" title="Position and orientation constraint. " alt="" coords="363,56,517,83"/>
+<area shape="rect" id="node5" href="$classelion_1_1PositionConstraint.html" title="elion::PositionConstraint" alt="" coords="358,107,522,133"/>
+<area shape="rect" id="node6" href="$classelion_1_1RPYConstraints.html" title="Orientation constraints based on roll, pitch, yaw error. " alt="" coords="364,157,516,184"/>
+</map>

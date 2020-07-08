@@ -1,0 +1,22 @@
+actions: []
+authors: ''
+brief: ''
+bugtracker: ''
+depends:
+- moveit_core
+- catkin
+- roscpp
+- moveit_msgs
+- eigen_conversions
+- moveit_ros_planning
+- rostest
+- panda_moveit_config
+- ompl
+description: The elion_planner package
+license: TODO
+maintainers: jeroen <jeroen@todo.todo>
+msgs: []
+package_type: package
+repo_url: ''
+srvs: []
+url: ''

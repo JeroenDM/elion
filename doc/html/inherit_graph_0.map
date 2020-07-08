@@ -1,0 +1,7 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node2" href="$classelion_1_1BaseConstraint.html" title="Abstract base class for differen types of constraints. " alt="" coords="136,81,283,108"/>
+<area shape="rect" id="node3" href="$classelion_1_1AngleAxisConstraint.html" title="orientation constraints based on angle&#45;axis error. " alt="" coords="331,5,507,32"/>
+<area shape="rect" id="node4" href="$classelion_1_1PoseConstraints.html" title="Position and orientation constraint. " alt="" coords="341,56,496,83"/>
+<area shape="rect" id="node5" href="$classelion_1_1PositionConstraint.html" title="elion::PositionConstraint" alt="" coords="337,107,501,133"/>
+<area shape="rect" id="node6" href="$classelion_1_1RPYConstraints.html" title="Orientation constraints based on roll, pitch, yaw error. " alt="" coords="343,157,495,184"/>
+</map>
