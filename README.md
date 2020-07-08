@@ -8,6 +8,8 @@ Refactored version of: [https://github.com/JeroenDM/moveit_constrained_planning_
 
 Work in progress.
 
+[API documentation for elion_planner package.](https://jeroendm.github.io/elion/docs/html/index.html)
+
 ## Build instructions
 
 Start with the usual commands:
