@@ -73,12 +73,12 @@ public:
    *
    *  OMPL requires you to override at least "function" which represents the constraint F(q) = 0
    * */
-  void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const override;
+  virtual void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const override;
 
   /** Optionally you can also provide dF(q)/dq, the Jacobian of  the constriants.
    *
    * */
-  void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override;
+  virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override;
 
   // generic helper functions for robot kinematics.
   // @todo Are these actually const, as the robot state is modified? How come it works?
