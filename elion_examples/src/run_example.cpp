@@ -213,7 +213,8 @@ int main(int argc, char** argv)
 
   req1.path_constraints = elion::readPathConstraints(root["constraints"], fixed_frame);
 
-  req1.allowed_planning_time = robot_config.get("allowed_planning_time", 5.0).asDouble();
+  req1.allowed_planning_time = robot_config.get("allowed_planning_time", 5.0).asDouble();  // 5.0 default planning time
+  req1.planner_id = robot_config.get("planner_id", "RRTConnect").asString();  // RRTConnect as default planner
 
   if (req1.path_constraints.position_constraints.size() > 0)
     visuals.showPositionConstraints(req1.path_constraints.position_constraints.at(0));

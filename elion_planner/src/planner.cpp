@@ -2,6 +2,12 @@
 
 #include <iostream>
 
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
+#include <ompl/geometric/planners/prm/PRM.h>
+#include <ompl/geometric/planners/prm/PRMstar.h>
+
 #include "elion_planner/collision_checking.h"
 
 namespace elion
@@ -40,7 +46,7 @@ void ElionPlanner::preSolve(robot_model::RobotModelConstPtr robot_model, const s
 
   simple_setup_ = std::make_shared<og::SimpleSetup>(constrained_state_space_info_);
 
-  planner_ = std::make_shared<og::RRTConnect>(constrained_state_space_info_);
+  planner_ = selectAndCreatePlanner(request.planner_id, constrained_state_space_info_);
 
   simple_setup_->setPlanner(planner_);
 
@@ -123,4 +129,35 @@ void ElionPlanner::postSolve()
   bool is_path_valid = checkSolution();
   ROS_INFO_STREAM("Is OMPL interpolation valid? " << (is_path_valid ? "yes" : "no"));
 }
+
+ob::PlannerPtr ElionPlanner::selectAndCreatePlanner(const std::string& planner_id,
+                                                    ob::ConstrainedSpaceInformationPtr space_info) const
+{
+  if (planner_id == "RRTConnect")
+  {
+    return std::make_shared<og::RRTConnect>(space_info);
+  }
+  else if (planner_id == "RRTstar")
+  {
+    return std::make_shared<og::RRTstar>(space_info);
+  }
+  else if (planner_id == "PRM")
+  {
+    return std::make_shared<og::PRM>(space_info);
+  }
+  else if (planner_id == "BKPIECE1")
+  {
+    return std::make_shared<og::BKPIECE1>(space_info);
+  }
+  else if (planner_id == "PRMstar")
+  {
+    return std::make_shared<og::PRMstar>(space_info);
+  }
+  else
+  {
+    ROS_ERROR_STREAM("Unkown planner id: " << planner_id);
+    return nullptr;
+  }
+}
+
 }  // namespace elion

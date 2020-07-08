@@ -18,7 +18,7 @@
 #include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 
 #include <ompl/geometric/SimpleSetup.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/base/Planner.h>
 
 #include "elion_planner/constraint.h"
 
@@ -61,13 +61,17 @@ public:
   }
 
 private:
+  /** \brief Create OMPL planner based on the name of the planner (planner_id). **/
+  ob::PlannerPtr selectAndCreatePlanner(const std::string& planner_id,
+                                        ob::ConstrainedSpaceInformationPtr space_info) const;
+
   std::shared_ptr<ob::RealVectorStateSpace> state_space_;
   std::shared_ptr<BaseConstraint> constraints_;
 
   std::shared_ptr<ob::ProjectedStateSpace> constrained_state_space_;
   std::shared_ptr<ob::ConstrainedSpaceInformation> constrained_state_space_info_;
   std::shared_ptr<og::SimpleSetup> simple_setup_;
-  std::shared_ptr<og::RRTConnect> planner_;
+  std::shared_ptr<ob::Planner> planner_;
 
   // @todo, this can be a ROS specific format
   std::vector<Eigen::VectorXd> solution_path_;
