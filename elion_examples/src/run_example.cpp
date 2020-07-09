@@ -113,7 +113,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "elion_examples");
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  ros::NodeHandle node_handle("~");
+  ros::NodeHandle node_handle;
 
   // Read a configuration file
   // ^^^^^^^^^^^^^^^^^^^^^^^^^
