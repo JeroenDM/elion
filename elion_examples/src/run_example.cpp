@@ -63,13 +63,13 @@ planning_interface::MotionPlanRequest createPTPProblem(geometry_msgs::Pose& star
 
   // fill out start state in request
   robot_state::RobotState start_state(robot_model);
-  bool success = start_state.setFromIK(joint_model_group, start_pose);
+  bool success = start_state.setFromIK(joint_model_group, start_pose, 10.0);
   ROS_INFO_STREAM("Start pose IK: " << (success ? "succeeded." : "failed."));
   moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
 
   // fill out goal state in request
   robot_state::RobotState goal_state(start_state);
-  success = goal_state.setFromIK(joint_model_group, goal_pose);
+  success = goal_state.setFromIK(joint_model_group, goal_pose, 10.0);
   ROS_INFO_STREAM("Goal pose IK: " << (success ? "succeeded." : "failed."));
   moveit_msgs::Constraints joint_goal = kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group);
   req.goal_constraints.clear();
