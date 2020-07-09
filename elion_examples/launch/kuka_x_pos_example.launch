@@ -1,0 +1,3 @@
+<launch>
+    <node name="kuka_x_pos_con" pkg="elion_examples" type="elion_run_example" args="kuka_x_pos_con.json" output="screen"/>
+</launch>
