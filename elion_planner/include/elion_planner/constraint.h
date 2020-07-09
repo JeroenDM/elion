@@ -96,7 +96,10 @@ public:
    * In this Position constraints case, it calculates the x, y and z position
    * of the end-effector.
    * */
-  virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const = 0;
+  virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+  {
+    ROS_ERROR_STREAM("Constraint method calcError was not overridded, so it should not be used.");
+  }
 
   /** Calculate the Jacobian for the current parameters that are being constraints.
    *
