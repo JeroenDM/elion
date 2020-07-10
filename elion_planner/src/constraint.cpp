@@ -249,6 +249,34 @@ Eigen::VectorXd PoseConstraints::calcError(const Eigen::Ref<const Eigen::VectorX
 }
 
 /******************************************
+ * Equality constraints on X position
+ * ****************************************/
+
+XPositionConstraint::XPositionConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
+                                         const unsigned int num_dofs)
+  : BaseConstraint(robot_model, group, num_dofs, 1)
+{
+}
+
+void XPositionConstraint::parseConstraintMsg(moveit_msgs::Constraints constraints)
+{
+  ROS_INFO_STREAM("Creating equality constraints on x-position of end-effector.");
+  geometry_msgs::Point position =
+      constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
+  target_ << position.x, position.y, position.z;
+}
+
+void XPositionConstraint::function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const
+{
+  out[0] = forwardKinematics(x).translation().x() - target_.x();
+}
+
+void XPositionConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const
+{
+  out.row(0) = geometricJacobian(x).row(0);
+}
+
+/******************************************
  * Factory
  * ****************************************/
 
@@ -261,7 +289,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
 
   if (num_pos_con > 0 && num_ori_con > 0)
   {
-    ROS_ERROR_STREAM("Combining position and orientation constraints results in ignoring the z orientation tolerance value.");
+    ROS_ERROR_STREAM(
+        "Combining position and orientation constraints results in ignoring the z orientation tolerance value.");
     auto pose_con = std::make_shared<PoseConstraints>(robot_model, group, num_dofs);
     pose_con->init(constraints);
     return pose_con;
@@ -272,7 +301,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
     {
       ROS_ERROR_STREAM("Only a single position constraints supported. Using the first one.");
     }
-    auto pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
+    // auto pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
+    auto pos_con = std::make_shared<XPositionConstraint>(robot_model, group, num_dofs);
     pos_con->init(constraints);
     return pos_con;
   }

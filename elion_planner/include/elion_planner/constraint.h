@@ -225,6 +225,16 @@ private:
   Eigen::Quaterniond target_as_quat_;
 };
 
+class XPositionConstraint : public BaseConstraint
+{
+public:
+  XPositionConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
+                      const unsigned int num_dofs);
+  virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) override;
+  virtual void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const override;
+  virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override;
+};
+
 /** \brief Factory to create constraints based on what is in the MoveIt constraint message. **/
 std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
                                                  moveit_msgs::Constraints constraints);
