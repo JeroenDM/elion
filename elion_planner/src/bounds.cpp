@@ -4,9 +4,9 @@ namespace elion
 {
 double Bounds::distance(double value) const
 {
-  if (value < lower)
+  if (value <= lower)
     return lower - value;
-  else if (value > upper)
+  else if (value >= upper)
     return value - upper;
   else
     return 0.0;

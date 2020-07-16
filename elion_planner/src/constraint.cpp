@@ -69,11 +69,11 @@ void BaseConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen:
 
   for (std::size_t i{ 0 }; i < bounds_.size(); ++i)
   {
-    if (current_values[i] > bounds_[i].upper + getTolerance())
+    if (current_values[i] >= bounds_[i].upper + getTolerance())
     {
       out.row(i) = current_jacobian.row(i);
     }
-    else if (current_values[i] < bounds_[i].lower - getTolerance())
+    else if (current_values[i] <= bounds_[i].lower - getTolerance())
     {
       out.row(i) = -current_jacobian.row(i);
     }
