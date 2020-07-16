@@ -49,9 +49,9 @@ void ElionPlanner::preSolve(robot_model::RobotModelConstPtr robot_model, const s
   // Atlas and TangentBundle give exception:
   //   ompl::base::AtlasStateSpace::newChart(): Failed because manifold looks degenerate here.
   // constrained_state_space_ = std::make_shared<ob::TangentBundleStateSpace>(state_space_, constraints_);
-  // constrained_state_space_ = std::make_shared<ob::AtlasStateSpace>(state_space_, constraints_);
+  constrained_state_space_ = std::make_shared<ob::AtlasStateSpace>(state_space_, constraints_);
 
-  constrained_state_space_ = std::make_shared<ob::ProjectedStateSpace>(state_space_, constraints_);
+  // constrained_state_space_ = std::make_shared<ob::ProjectedStateSpace>(state_space_, constraints_);
 
   constrained_state_space_info_ = std::make_shared<ob::ConstrainedSpaceInformation>(constrained_state_space_);
 
