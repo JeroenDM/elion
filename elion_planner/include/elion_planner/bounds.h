@@ -31,6 +31,7 @@ struct Bounds
    * (how does ascii art work??)
    * */
   double distance(double value) const;
+  double derivative(double value) const;
 };
 
 }  // namespace elion

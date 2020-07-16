@@ -71,11 +71,11 @@ void BaseConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen:
   {
     if (current_values[i] >= bounds_[i].upper + getTolerance())
     {
-      out.row(i) = current_jacobian.row(i);
+      out.row(i) = current_jacobian.row(i) * bounds_[i].derivative(current_values[i]);
     }
     else if (current_values[i] <= bounds_[i].lower - getTolerance())
     {
-      out.row(i) = -current_jacobian.row(i);
+      out.row(i) = -current_jacobian.row(i) * bounds_[i].derivative(current_values[i]);
     }
     else
     {
@@ -289,8 +289,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
 
   if (num_pos_con > 0 && num_ori_con > 0)
   {
-    ROS_ERROR_STREAM(
-        "Combining position and orientation constraints results in ignoring the z orientation tolerance value.");
+    ROS_ERROR_STREAM("Combining position and orientation constraints results in ignoring the z orientation tolerance "
+                     "value.");
     auto pose_con = std::make_shared<PoseConstraints>(robot_model, group, num_dofs);
     pose_con->init(constraints);
     return pose_con;
