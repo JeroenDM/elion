@@ -301,8 +301,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
     {
       ROS_ERROR_STREAM("Only a single position constraints supported. Using the first one.");
     }
-    // auto pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
-    auto pos_con = std::make_shared<XPositionConstraint>(robot_model, group, num_dofs);
+    auto pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
+    // auto pos_con = std::make_shared<XPositionConstraint>(robot_model, group, num_dofs);
     pos_con->init(constraints);
     return pos_con;
   }
