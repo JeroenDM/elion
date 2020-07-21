@@ -1,14 +1,14 @@
 #include "elion_planner/constraint.h"
 
 #include <Eigen/Geometry>
-#include <ompl/base/Constraint.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <cmath>
+#include <eigen_conversions/eigen_msg.h>
+#include <ompl/base/Constraint.h>
 
-#include <ros/console.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/Constraints.h>
+#include <ros/console.h>
 
 #include "elion_planner/conversions.h"
 #include "elion_planner/msg_parsing.h"
@@ -131,9 +131,12 @@ void AngleAxisConstraint::parseConstraintMsg(moveit_msgs::Constraints constraint
   ROS_INFO_STREAM("Parsed rz / yaw constraints" << bounds_[2]);
 
   // extract target / nominal value
-  // for orientation we can save the target in different formats, probably quaternion is the best one here
-  // we could use a 3 vector to be uniform with position constraints, but this makes us vulnerable to
-  // singularities, wich could occur here as the target can be an arbitrary orientation
+  // for orientation we can save the target in different formats, probably
+  // quaternion is the best one here
+  // we could use a 3 vector to be uniform with position constraints, but this
+  // makes us vulnerable to
+  // singularities, wich could occur here as the target can be an arbitrary
+  // orientation
   tf::quaternionMsgToEigen(constraints.orientation_constraints.at(0).orientation, target_as_quat_);
 
   // so we could do this:
@@ -143,8 +146,10 @@ void AngleAxisConstraint::parseConstraintMsg(moveit_msgs::Constraints constraint
 
 Eigen::VectorXd AngleAxisConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  // I'm not sure yet whether I want the error expressed in the current ee_frame, or target_frame,
-  // or world frame. This implementation expressed the error in the end-effector frame.
+  // I'm not sure yet whether I want the error expressed in the current
+  // ee_frame, or target_frame,
+  // or world frame. This implementation expressed the error in the end-effector
+  // frame.
   Eigen::Matrix3d Rerror = forwardKinematics(x).rotation().transpose() * target_as_quat_;
   Eigen::AngleAxisd aa(Rerror);
   double angle = aa.angle();
@@ -155,7 +160,8 @@ Eigen::VectorXd AngleAxisConstraint::calcError(const Eigen::Ref<const Eigen::Vec
 // mysterious minus sign in Jacobian, found through trial and error...
 Eigen::MatrixXd AngleAxisConstraint::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  // Eigen::AngleAxisd aa {forwardKinematics(x).rotation().transpose() * target_as_quat_};
+  // Eigen::AngleAxisd aa {forwardKinematics(x).rotation().transpose() *
+  // target_as_quat_};
 
   Eigen::AngleAxisd aa{ forwardKinematics(x).rotation() };
   return -angularVelocityToAngleAxis(aa.angle(), aa.axis()) * geometricJacobian(x).bottomRows(3);
@@ -173,9 +179,12 @@ void RPYConstraints::parseConstraintMsg(moveit_msgs::Constraints constraints)
   ROS_INFO_STREAM("Parsed rz / yaw constraints" << bounds_[2]);
 
   // extract target / nominal value
-  // for orientation we can save the target in different formats, probably quaternion is the best one here
-  // we could use a 3 vector to be uniform with position constraints, but this makes us vulnerable to
-  // singularities, wich could occur here as the target can be an arbitrary orientation
+  // for orientation we can save the target in different formats, probably
+  // quaternion is the best one here
+  // we could use a 3 vector to be uniform with position constraints, but this
+  // makes us vulnerable to
+  // singularities, wich could occur here as the target can be an arbitrary
+  // orientation
   tf::quaternionMsgToEigen(constraints.orientation_constraints.at(0).orientation, target_as_quat_);
 
   // so we could do this:
@@ -185,21 +194,28 @@ void RPYConstraints::parseConstraintMsg(moveit_msgs::Constraints constraints)
 
 Eigen::VectorXd RPYConstraints::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  // I'm not sure yet whether I want the error expressed in the current ee_frame, or target_frame,
-  // or world frame. This implementation expressed the error in the end-effector frame.
+  // I'm not sure yet whether I want the error expressed in the current
+  // ee_frame, or target_frame,
+  // or world frame. This implementation expressed the error in the end-effector
+  // frame.
   Eigen::Matrix3d error = forwardKinematics(x).rotation().transpose() * target_as_quat_;
   return error.eulerAngles(0, 1, 2);
 
-  // alternative, calculate difference of euler angles and try to live with singularities
-  // Eigen::Vector3d error = forwardKinematics(x).rotation().eulerAngles(0, 1, 2) - target_;
+  // alternative, calculate difference of euler angles and try to live with
+  // singularities
+  // Eigen::Vector3d error = forwardKinematics(x).rotation().eulerAngles(0, 1,
+  // 2) - target_;
   // return error;
 }
 
 Eigen::MatrixXd RPYConstraints::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  // use the euler angles of the current end-effector orientation expressed in the world frame
-  // we need this to convert the geometric jacobian to an analytical one that can be used for rpy angles
-  // the jacobian is expressed in the world frame, so should the rpy angles I suppose...
+  // use the euler angles of the current end-effector orientation expressed in
+  // the world frame
+  // we need this to convert the geometric jacobian to an analytical one that
+  // can be used for rpy angles
+  // the jacobian is expressed in the world frame, so should the rpy angles I
+  // suppose...
   auto rpy = forwardKinematics(x).rotation().eulerAngles(0, 1, 2);
   return angularVelocityToRPYRates(rpy[0], rpy[1]) * geometricJacobian(x).bottomRows(3);
 }
@@ -289,8 +305,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
 
   if (num_pos_con > 0 && num_ori_con > 0)
   {
-    ROS_ERROR_STREAM(
-        "Combining position and orientation constraints results in ignoring the z orientation tolerance value.");
+    ROS_ERROR_STREAM("Combining position and orientation constraints results "
+                     "in ignoring the z orientation tolerance value.");
     auto pose_con = std::make_shared<PoseConstraints>(robot_model, group, num_dofs);
     pose_con->init(constraints);
     return pose_con;
@@ -302,7 +318,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
       ROS_ERROR_STREAM("Only a single position constraints supported. Using the first one.");
     }
     auto pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
-    // auto pos_con = std::make_shared<XPositionConstraint>(robot_model, group, num_dofs);
+    // auto pos_con = std::make_shared<XPositionConstraint>(robot_model, group,
+    // num_dofs);
     pos_con->init(constraints);
     return pos_con;
   }
@@ -310,7 +327,8 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
   {
     if (num_ori_con > 1)
     {
-      ROS_ERROR_STREAM("Only a single orientation constraints supported. Using the first one.");
+      ROS_ERROR_STREAM("Only a single orientation constraints supported. Using "
+                       "the first one.");
     }
 
     if (constraints.name == OrientationErrorType::ANGLE_AXIS)
@@ -332,8 +350,10 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
       ROS_ERROR_STREAM("Unkown type of orientation constraint: " << constraints.name);
       return nullptr;
     }
-    // auto ori_con = std::make_shared<RPYConstraints>(robot_model, group, constraints, num_dofs);
-    // auto ori_con = std::make_shared<QuaternionConstraint>(robot_model, group, constraints, num_dofs);
+    // auto ori_con = std::make_shared<RPYConstraints>(robot_model, group,
+    // constraints, num_dofs);
+    // auto ori_con = std::make_shared<QuaternionConstraint>(robot_model, group,
+    // constraints, num_dofs);
     // ori_con->init(constraints);
   }
   else

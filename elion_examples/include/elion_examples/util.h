@@ -1,19 +1,19 @@
 #ifndef ELION_EXAMPLES_UTIL_H
 #define ELION_EXAMPLES_UTIL_H
 
-#include <pluginlib/class_loader.h>
 #include <boost/scoped_ptr.hpp>
 #include <jsoncpp/json/json.h>
+#include <pluginlib/class_loader.h>
 
-#include <ros/console.h>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Quaternion.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/Constraints.h>
-#include <geometry_msgs/Quaternion.h>
-#include <geometry_msgs/Pose.h>
+#include <ros/console.h>
 
-#include <ros/node_handle.h>
-#include <moveit_visual_tools/moveit_visual_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit_visual_tools/moveit_visual_tools.h>
+#include <ros/node_handle.h>
 
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>

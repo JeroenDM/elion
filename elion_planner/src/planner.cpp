@@ -2,14 +2,14 @@
 
 #include <iostream>
 
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/kpiece/BKPIECE1.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/RRTstar.h>
 
-#include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 #include <ompl/base/spaces/constraint/AtlasStateSpace.h>
+#include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 #include <ompl/base/spaces/constraint/TangentBundleStateSpace.h>
 
 #include "elion_planner/collision_checking.h"
@@ -45,11 +45,15 @@ void ElionPlanner::preSolve(robot_model::RobotModelConstPtr robot_model, const s
     return;
   }
 
-  // Only projected state space works for how the constraints are forumulated now.
+  // Only projected state space works for how the constraints are forumulated
+  // now.
   // Atlas and TangentBundle give exception:
-  //   ompl::base::AtlasStateSpace::newChart(): Failed because manifold looks degenerate here.
-  // constrained_state_space_ = std::make_shared<ob::TangentBundleStateSpace>(state_space_, constraints_);
-  // constrained_state_space_ = std::make_shared<ob::AtlasStateSpace>(state_space_, constraints_);
+  //   ompl::base::AtlasStateSpace::newChart(): Failed because manifold looks
+  //   degenerate here.
+  // constrained_state_space_ =
+  // std::make_shared<ob::TangentBundleStateSpace>(state_space_, constraints_);
+  // constrained_state_space_ =
+  // std::make_shared<ob::AtlasStateSpace>(state_space_, constraints_);
 
   constrained_state_space_ = std::make_shared<ob::ProjectedStateSpace>(state_space_, constraints_);
 

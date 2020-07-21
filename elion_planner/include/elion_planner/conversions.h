@@ -4,7 +4,8 @@
 
 namespace elion
 {
-/** \brief Inverse of the Conversion matrix from roll-pitch-yaw velocity to angular velocity.
+/** \brief Inverse of the Conversion matrix from roll-pitch-yaw velocity to
+ * angular velocity.
  *
  * w = B(rpy) * rpy_dot
  * w = angular velocity, B = matrix returned by this function,

@@ -1,7 +1,7 @@
 #include "elion_planner/msg_parsing.h"
 
-#include <vector>
 #include <moveit_msgs/Constraints.h>
+#include <vector>
 
 #include "elion_planner/bounds.h"
 

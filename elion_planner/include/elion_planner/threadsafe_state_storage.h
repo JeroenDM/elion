@@ -37,14 +37,15 @@
 #pragma once
 
 #include <moveit/robot_state/robot_state.h>
-#include <thread>
 #include <mutex>
+#include <thread>
 
 namespace elion
 {
 /** \brief Thead-safe state storage.
  *
- * OMPL requires the State Validity Checker (used for collision checking) to be thread-save.
+ * OMPL requires the State Validity Checker (used for collision checking) to be
+ * thread-save.
  * MoveIt robot states are put into a map with the thread id as a key.
  * */
 class TSStateStorage

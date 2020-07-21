@@ -1,21 +1,21 @@
-#include <string>
 #include <fstream>
+#include <string>
 
-#include <ros/ros.h>
 #include <ros/package.h>
+#include <ros/ros.h>
 
 #include <jsoncpp/json/json.h>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/robot_state.h>
 
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MotionPlanResponse.h>
 
-#include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/robot_state/conversions.h>
 
 #include "elion_examples/util.h"
 
@@ -42,7 +42,8 @@ planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>
   req.goal_constraints.clear();
   req.goal_constraints.push_back(joint_goal);
 
-  // I don't know I nice way to publish two robot states at once with MoveIt visual tools
+  // I don't know I nice way to publish two robot states at once with MoveIt
+  // visual tools
   // Therefore I just put a pause in between to show them both in sequence.
   visuals.rvt_->publishRobotState(start, joint_model_group, rviz_visual_tools::GREEN);
   visuals.rvt_->trigger();
@@ -77,7 +78,8 @@ planning_interface::MotionPlanRequest createPTPProblem(geometry_msgs::Pose& star
   req.goal_constraints.clear();
   req.goal_constraints.push_back(joint_goal);
 
-  // I don't know I nice way to publish two robot states at once with MoveIt visual tools
+  // I don't know I nice way to publish two robot states at once with MoveIt
+  // visual tools
   // Therefore I just put a pause in between to show them both in sequence.
   visuals.rvt_->publishRobotState(start_state, rviz_visual_tools::GREEN);
   visuals.rvt_->trigger();
@@ -156,7 +158,8 @@ int main(int argc, char** argv)
   // Setup MoveIt related handles to robot, planning scene, ...
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  // The usual spiel to setup all MoveIt objects to manage robot state and planning scene
+  // The usual spiel to setup all MoveIt objects to manage robot state and
+  // planning scene
   robot_model_loader::RobotModelLoaderPtr robot_model_loader(
       new robot_model_loader::RobotModelLoader(robot_description));
   moveit::core::RobotModelPtr robot_model = robot_model_loader->getModel();
@@ -168,8 +171,10 @@ int main(int argc, char** argv)
   elion::loadPlanningPlugin(planner_plugin_loader, planner_instance, robot_model, node_handle, BASE_CLASS,
                             planning_plugin_name);
 
-  // auto planning_scene = std::make_shared<planning_scene::PlanningScene>(robot_model);
-  // planning_scene->getCurrentStateNonConst().setToDefaultValues(joint_model_group, "ready");
+  // auto planning_scene =
+  // std::make_shared<planning_scene::PlanningScene>(robot_model);
+  // planning_scene->getCurrentStateNonConst().setToDefaultValues(joint_model_group,
+  // "ready");
 
   // Visualization
   // ^^^^^^^^^^^^^
@@ -190,7 +195,8 @@ int main(int argc, char** argv)
   // Create the planning request
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  // figure out whether start and goal state are given as joint values or end-effector poses
+  // figure out whether start and goal state are given as joint values or
+  // end-effector poses
   // TODO this could be moved to the createPTPProblem function
   std::string start_type{ root["start"].get("type", {}).asString() };
   std::string goal_type{ root["goal"].get("type", {}).asString() };

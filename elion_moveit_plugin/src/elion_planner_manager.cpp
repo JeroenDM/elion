@@ -3,10 +3,10 @@
 
 #include <class_loader/class_loader.hpp>
 
+#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
-#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 
 #include "elion_moveit_plugin/elion_planning_context.h"
 

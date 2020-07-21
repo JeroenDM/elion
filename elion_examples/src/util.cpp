@@ -1,17 +1,17 @@
 #include "elion_examples/util.h"
 
-#include <vector>
-#include <string>
-#include <pluginlib/class_loader.h>
 #include <boost/scoped_ptr.hpp>
 #include <jsoncpp/json/json.h>
+#include <pluginlib/class_loader.h>
+#include <string>
+#include <vector>
 
+#include <geometry_msgs/Quaternion.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/Constraints.h>
-#include <geometry_msgs/Quaternion.h>
 
-#include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/robot_state/conversions.h>
 
 #include <tf2_eigen/tf2_eigen.h>
 
@@ -183,7 +183,8 @@ moveit_msgs::PositionConstraint readPositionConstraint(const Json::Value& con, c
 
   if (nominal_orientation.size() != 3)
   {
-    ROS_ERROR_STREAM("Position constraint rpy (nominal orientation) should have length 3, not "
+    ROS_ERROR_STREAM("Position constraint rpy (nominal orientation) should "
+                     "have length 3, not "
                      << nominal_orientation.size());
     return position_constraint;
   }
@@ -224,7 +225,8 @@ moveit_msgs::OrientationConstraint readOrientationConstraints(const Json::Value&
 
   if (nominal_orientation.size() != 3)
   {
-    ROS_ERROR_STREAM("Orientation constraint rpy (nominal orientation) should have length 3, not "
+    ROS_ERROR_STREAM("Orientation constraint rpy (nominal orientation) should "
+                     "have length 3, not "
                      << nominal_orientation.size());
     return orientation_constraint;
   }
@@ -243,11 +245,14 @@ moveit_msgs::OrientationConstraint readOrientationConstraints(const Json::Value&
   return orientation_constraint;
 }
 
-/** \brief Parse orientation constraints from json file read with the library jsoncpp.
- * 
- * The error type for orientation constraints is specified in a hacky way as the name of the constraitns.
- * For the strings identifying the types, see elion_planner/constraints.h in the namespace OrientationErrorType.
- * 
+/** \brief Parse orientation constraints from json file read with the library
+ * jsoncpp.
+ *
+ * The error type for orientation constraints is specified in a hacky way as the
+ * name of the constraitns.
+ * For the strings identifying the types, see elion_planner/constraints.h in the
+ * namespace OrientationErrorType.
+ *
  * */
 moveit_msgs::Constraints readPathConstraints(const Json::Value& json_constraints, const std::string fixed_frame)
 {

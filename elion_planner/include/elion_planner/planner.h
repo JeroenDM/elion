@@ -12,13 +12,13 @@
 #include <moveit/planning_interface/planning_request.h>
 #include <moveit/planning_scene/planning_scene.h>
 
-#include <ompl/base/spaces/RealVectorStateSpace.h>
-#include <ompl/base/Constraint.h>
 #include <ompl/base/ConstrainedSpaceInformation.h>
+#include <ompl/base/Constraint.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/constraint/ConstrainedStateSpace.h>
 
-#include <ompl/geometric/SimpleSetup.h>
 #include <ompl/base/Planner.h>
+#include <ompl/geometric/SimpleSetup.h>
 
 #include "elion_planner/constraint.h"
 
@@ -34,11 +34,13 @@ class ElionPlanner
 public:
   ElionPlanner();
 
-  /** \brief Create OMPL state space, simple setup and planner based on request. **/
+  /** \brief Create OMPL state space, simple setup and planner based on request.
+   * **/
   void preSolve(robot_model::RobotModelConstPtr robot_model, const std::string& group,
                 const planning_scene::PlanningSceneConstPtr& ps, planning_interface::MotionPlanRequest request);
 
-  /** \brief Solve the planning problem, directly pass joint positions for start and goal in this minimal example.
+  /** \brief Solve the planning problem, directly pass joint positions for start
+   * and goal in this minimal example.
    *
    * \todo Should this be part of the preSolve setup?
    * */
@@ -51,7 +53,8 @@ public:
    **/
   void postSolve();
 
-  /** \brief Check if the constraints are satisfied along the path `solution_path_`. **/
+  /** \brief Check if the constraints are satisfied along the path
+   * `solution_path_`. **/
   bool checkSolution();
 
   /** \brief Get solution in a generic OMPL and ROS independent format. **/
@@ -61,7 +64,8 @@ public:
   }
 
 private:
-  /** \brief Create OMPL planner based on the name of the planner (planner_id). **/
+  /** \brief Create OMPL planner based on the name of the planner (planner_id).
+   * **/
   ob::PlannerPtr selectAndCreatePlanner(const std::string& planner_id,
                                         ob::ConstrainedSpaceInformationPtr space_info) const;
 

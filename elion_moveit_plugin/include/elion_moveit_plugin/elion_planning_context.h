@@ -1,15 +1,16 @@
 #ifndef COMPL_PLANNING_CONTEXT_H
 #define COMPL_PLANNING_CONTEXT_H
 
-#include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/robot_model.h>
 
 #include <elion_planner/planner.h>
 
 namespace elion
 {
-// Macro that forward declares a class and defines the respective smartpointers through MOVEIT_DECLARE_PTR.
+// Macro that forward declares a class and defines the respective smartpointers
+// through MOVEIT_DECLARE_PTR.
 MOVEIT_CLASS_FORWARD(ElionPlanningContext);
 
 class ElionPlanningContext : public planning_interface::PlanningContext

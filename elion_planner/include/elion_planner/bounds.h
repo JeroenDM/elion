@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include <limits>
-#include <vector>
 #include <moveit_msgs/Constraints.h>
+#include <vector>
 
 namespace elion
 {

@@ -65,43 +65,54 @@ public:
   void init(moveit_msgs::Constraints constraints);
 
   // some kind of factory method, but I can't get it to work yet
-  // static std::shared_ptr<PositionConstraint> create(robot_model::RobotModelConstPtr robot_model,
-  //                                                   const std::string& group, moveit_msgs::Constraints constraints,
-  //                                                   const unsigned int num_dofs);
+  // static std::shared_ptr<PositionConstraint>
+  // create(robot_model::RobotModelConstPtr robot_model,
+  //                                                   const std::string& group,
+  //                                                   moveit_msgs::Constraints
+  //                                                   constraints,
+  //                                                   const unsigned int
+  //                                                   num_dofs);
 
   /** OMPL's main constraint evaluation function.
    *
-   *  OMPL requires you to override at least "function" which represents the constraint F(q) = 0
+   *  OMPL requires you to override at least "function" which represents the
+   * constraint F(q) = 0
    * */
   void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const override;
 
-  /** Optionally you can also provide dF(q)/dq, the Jacobian of  the constriants.
+  /** Optionally you can also provide dF(q)/dq, the Jacobian of  the
+   * constriants.
    *
    * */
   void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override;
 
   // generic helper functions for robot kinematics.
-  // @todo Are these actually const, as the robot state is modified? How come it works?
+  // @todo Are these actually const, as the robot state is modified? How come it
+  // works?
   Eigen::Isometry3d forwardKinematics(const Eigen::Ref<const Eigen::VectorXd>& joint_values) const;
   Eigen::MatrixXd geometricJacobian(const Eigen::Ref<const Eigen::VectorXd>& joint_values) const;
 
-  /** Parse bounds on position and orientation parameters from MoveIt's constraint message.
+  /** Parse bounds on position and orientation parameters from MoveIt's
+   * constraint message.
    *
    * This is non-trivial given the often complex structure of these messages.
    * */
   virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) = 0;
 
-  /** Calculate the value of the parameter that is being constraint by the bounds.
+  /** Calculate the value of the parameter that is being constraint by the
+   * bounds.
    *
    * In this Position constraints case, it calculates the x, y and z position
    * of the end-effector.
    * */
   virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
   {
-    ROS_ERROR_STREAM("Constraint method calcError was not overridded, so it should not be used.");
+    ROS_ERROR_STREAM("Constraint method calcError was not overridded, so it "
+                     "should not be used.");
   }
 
-  /** Calculate the Jacobian for the current parameters that are being constraints.
+  /** Calculate the Jacobian for the current parameters that are being
+   * constraints.
    *
    * @todo, maybe also provide output agruments similar to the jacobian function
    * so we can default to ob::Constraint::jacobian(x, out) when needed.
@@ -111,7 +122,8 @@ public:
    * */
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
   {
-    ROS_ERROR_STREAM("Constraint method calcErrorJacobian was not overridded, so it should not be used.");
+    ROS_ERROR_STREAM("Constraint method calcErrorJacobian was not overridded, "
+                     "so it should not be used.");
   }
 
 protected:
@@ -121,7 +133,8 @@ protected:
   const robot_state::JointModelGroup* joint_model_group_;
   std::string link_name_;      /** Robot link the constraints are applied to. */
   std::vector<Bounds> bounds_; /** Upper and lower bounds on constrained variables. */
-  Eigen::Vector3d target_;     /** target for equality constraints, nominal value for inequality constraints. */
+  Eigen::Vector3d target_;     /** target for equality constraints, nominal value
+                                  for inequality constraints. */
 
   // New target is a full 3D pose, instead of only position or orientation
   // to allow for more general constraints.
@@ -158,7 +171,8 @@ public:
   {
   }
 
-  // void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override
+  // void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x,
+  // Eigen::Ref<Eigen::MatrixXd> out) const override
   // {
   //   ob::Constraint::jacobian(x, out);
   // }
@@ -185,7 +199,8 @@ public:
   {
   }
 
-  // void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override
+  // void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x,
+  // Eigen::Ref<Eigen::MatrixXd> out) const override
   // {
   //   ob::Constraint::jacobian(x, out);
   // }
@@ -219,7 +234,8 @@ public:
 
   virtual void parseConstraintMsg(moveit_msgs::Constraints constraints) override;
   virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
-  // virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
+  // virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const
+  // Eigen::VectorXd>& x) const override;
 
 private:
   Eigen::Quaterniond target_as_quat_;
@@ -235,7 +251,8 @@ public:
   virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override;
 };
 
-/** \brief Factory to create constraints based on what is in the MoveIt constraint message. **/
+/** \brief Factory to create constraints based on what is in the MoveIt
+ * constraint message. **/
 std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
                                                  moveit_msgs::Constraints constraints);
 

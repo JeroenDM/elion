@@ -16,7 +16,8 @@ namespace elion
 {
 namespace ob = ompl::base;
 
-/** \brief Interface to collision checking in planning scene as an OMPL State Validity Checker
+/** \brief Interface to collision checking in planning scene as an OMPL State
+ * Validity Checker
  *
  * The class is explicitly called collision checker because that is it's only
  * responsibility. In the existing OMPL interface in MoveIt, the state validity
@@ -36,7 +37,8 @@ public:
 
 private:
   std::string group_name_;
-  TSStateStorage tss_; /**< Thread-safe state storage, OMPL requires the StateValidityChecker to be thread-safe. */
+  TSStateStorage tss_; /**< Thread-safe state storage, OMPL requires the
+                          StateValidityChecker to be thread-safe. */
   collision_detection::CollisionRequest collision_request_simple_;
   const planning_scene::PlanningSceneConstPtr& ps_;
 };

@@ -1,12 +1,12 @@
 #include <elion_planner/constraint.h>
 
+#include <Eigen/Dense>
+#include <gtest/gtest.h>
 #include <memory>
 #include <string>
-#include <gtest/gtest.h>
-#include <Eigen/Dense>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/Constraints.h>
 
@@ -21,7 +21,8 @@ const std::string EE_LINK = "ee_link";
 // How many times do we repeat tests based on random joint values?
 const int NUM_RANDOM_TESTS{ 50 };
 
-// Robot description almost always called "robot_description" and therefore hardcoded below
+// Robot description almost always called "robot_description" and therefore
+// hardcoded below
 const std::string ROBOT_DESCRIPTION = "robot_description";
 
 moveit_msgs::PositionConstraint createPositionConstraint(std::string& base_link, std::string& ee_link_name)
@@ -60,8 +61,10 @@ moveit_msgs::OrientationConstraint createOrientationConstraint(std::string& base
 Eigen::Vector3d rotationToRPY(const Eigen::Matrix3d& r)
 {
   Eigen::Vector3d xyz = r.eulerAngles(0, 1, 2);
-  // in MoveIt some wrapping is done sometimes, but I'm not sure why or when to apply it yet
-  // probably to convert the eigen convention: [0:pi]x[-pi:pi]x[-pi:pi] to a MoveIt convention?
+  // in MoveIt some wrapping is done sometimes, but I'm not sure why or when to
+  // apply it yet
+  // probably to convert the eigen convention: [0:pi]x[-pi:pi]x[-pi:pi] to a
+  // MoveIt convention?
   // but it looks the same to me
   // it does not seem to work in some cases.
   // xyz(0) = std::min(fabs(xyz(0)), M_PI - fabs(xyz(0)));
@@ -225,7 +228,8 @@ TEST_F(TestConstraints, PositionConstraintOMPLCheck)
   auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, constraint_);
 
   // constrained_state_space->constrainedSanityChecks(ompl::base::ConstrainedStateSpace::SanityChecks::CONSTRAINED_STATESPACE_JACOBIAN);
-  // I copied the Jacobian testing code from the sanityCheck below to investigate the problem
+  // I copied the Jacobian testing code from the sanityCheck below to
+  // investigate the problem
 
   for (int i{ 0 }; i < NUM_RANDOM_TESTS; ++i)
   {
@@ -238,11 +242,13 @@ TEST_F(TestConstraints, PositionConstraintOMPLCheck)
     constraint_->jacobian(*s1, j_a);              // Implemented in elion approximation
     constraint_->Constraint::jacobian(*s1, j_n);  // Numerical approximation
 
-    // eliminate issues with the numerical jacobian at the bounds of the constraints
+    // eliminate issues with the numerical jacobian at the bounds of the
+    // constraints
     // because of the finite interval used for numerical differentiation,
     // some function evaluation could be outside of the bounds and result in
     // a non-zero constraint function
-    // I suspect this is what causes (rare) failures of the test without this fix
+    // I suspect this is what causes (rare) failures of the test without this
+    // fix
     Eigen::Vector3d fun;
     constraint_->function(*s1, fun);
     for (std::size_t i{ 0 }; i < constraint_->getCoDimension(); ++i)
@@ -301,7 +307,8 @@ TEST_F(TestConstraints, AngleAxisConstraintOMPLCheck)
   auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, constraint_);
 
   // constrained_state_space->constrainedSanityChecks(ompl::base::ConstrainedStateSpace::SanityChecks::CONSTRAINED_STATESPACE_JACOBIAN);
-  // I copied the Jacobian testing code from the sanityCheck below to investigate the problem
+  // I copied the Jacobian testing code from the sanityCheck below to
+  // investigate the problem
 
   for (int i{ 0 }; i < NUM_RANDOM_TESTS; ++i)
   {
@@ -314,11 +321,13 @@ TEST_F(TestConstraints, AngleAxisConstraintOMPLCheck)
     constraint_->jacobian(*s1, j_a);              // Implemented in elion approximation
     constraint_->Constraint::jacobian(*s1, j_n);  // Numerical approximation
 
-    // eliminate issues with the numerical jacobian at the bounds of the constraints
+    // eliminate issues with the numerical jacobian at the bounds of the
+    // constraints
     // because of the finite interval used for numerical differentiation,
     // some function evaluation could be outside of the bounds and result in
     // a non-zero constraint function
-    // I suspect this is what causes (rare) failures of the test without this fix
+    // I suspect this is what causes (rare) failures of the test without this
+    // fix
     Eigen::Vector3d fun;
     constraint_->function(*s1, fun);
     for (std::size_t i{ 0 }; i < constraint_->getCoDimension(); ++i)

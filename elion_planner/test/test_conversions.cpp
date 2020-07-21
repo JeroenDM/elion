@@ -18,7 +18,8 @@ TEST(AngularVelocityToRPYRates, numericalDerivative)
     auto omega{ Vector3d::Random().normalized() };
 
     // use fixed values to make test repeatable
-    // Matrix3d rotation{ AngleAxisd(0.3, Vector3d::UnitX()) * AngleAxisd(0.2, Vector3d::UnitY()) *
+    // Matrix3d rotation{ AngleAxisd(0.3, Vector3d::UnitX()) * AngleAxisd(0.2,
+    // Vector3d::UnitY()) *
     //                    AngleAxisd(0.1, Vector3d::UnitZ()) };
     // Vector3d omega;
     // omega << 0.3, 0.0, 0.0;
@@ -64,7 +65,8 @@ TEST(AngularVelocityToAARates, numericalDerivative)
     // Matrix3d rotation{ AngleAxisd(1.0, Vector3d(1, 1, 1).normalized()) };
     // auto rotation = Matrix3d::Identity();
     // Matrix3d rotation{ AngleAxisd(M_PI_2, Vector3d::UnitX()) };
-    // Matrix3d rotation{ AngleAxisd(1.0, Vector3d(std::sqrt(2) / 2, std::sqrt(2) / 2, 0.0)) };
+    // Matrix3d rotation{ AngleAxisd(1.0, Vector3d(std::sqrt(2) / 2,
+    // std::sqrt(2) / 2, 0.0)) };
     // Vector3d omega;
     // omega << 1.0, 0.0, 0.0;
     // omega << 0.0, 0.0, 0.1;

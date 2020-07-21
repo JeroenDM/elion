@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <moveit_msgs/Constraints.h>
+#include <vector>
 
 #include "elion_planner/bounds.h"
 
@@ -35,12 +35,15 @@ std::vector<Bounds> positionConstraintMsgToBoundVector(moveit_msgs::PositionCons
 
 /** \brief Extract orientation constraints from the MoveIt message
  *
- * These bounds are assumed to be centered around the nominal orientation / desired orientation
+ * These bounds are assumed to be centered around the nominal orientation /
+ * desired orientation
  * given in the field "orientation" in the message.
- * These bounds are therefore bounds on the orientation error between the desired orientation
+ * These bounds are therefore bounds on the orientation error between the
+ * desired orientation
  * and the current orientation of the end-effector.
  *
- * The three bounds x, y, and z, can be applied to different parameterizations of the rotation error.
+ * The three bounds x, y, and z, can be applied to different parameterizations
+ * of the rotation error.
  * (Roll, pithc, and yaw or exponential coordinates or something else.)
  *
  * */
