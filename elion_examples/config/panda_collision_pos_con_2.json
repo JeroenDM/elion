@@ -1,0 +1,56 @@
+{
+    "config": {
+        "planning_group": "panda_arm",
+        "fixed_frame": "panda_link0",
+        "robot_description": "robot_description",
+        "planning_plugin_name": "ompl_interface/OMPLPlanner",
+        "allowed_planning_time": 20.0
+    },
+    "start": {
+        "type": "pose",
+        "xyz": [
+            0.3,
+            0.2,
+            0.3
+        ],
+        "rpy": [
+            0.0,
+            3.14159265359,
+            0.0
+        ]
+    },
+    "goal": {
+        "type": "pose",
+        "xyz": [
+            0.3,
+            -0.2,
+            0.3
+        ],
+        "rpy": [
+            0.0,
+            3.14159265359,
+            0.0
+        ]
+    },
+    "constraints": [
+        {
+            "type": "position",
+            "link_name": "panda_link8",
+            "xyz": [
+                0.3,
+                0.0,
+                0.4
+            ],
+            "rpy": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "dims": [
+                0.1,
+                0.5,
+                0.5
+            ]
+        }
+    ]
+}
