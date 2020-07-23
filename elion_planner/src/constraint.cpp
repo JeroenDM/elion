@@ -21,7 +21,7 @@ namespace elion
 
 BaseConstraint::BaseConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
                                const unsigned int num_dofs, const unsigned int num_cons_)
-  : robot_model_(robot_model), ob::Constraint(num_dofs, num_cons_)
+  : ob::Constraint(num_dofs, num_cons_), robot_model_(robot_model)
 {
   // Setup Moveit's robot model for kinematic calculations
   robot_state_.reset(new robot_state::RobotState(robot_model_));

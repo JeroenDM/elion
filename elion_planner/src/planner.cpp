@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
+// #include <ompl/geometric/planners/kpiece/BKPIECE1.h> // this planner causes compiler warnings
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
@@ -163,10 +163,6 @@ ob::PlannerPtr ElionPlanner::selectAndCreatePlanner(const std::string& planner_i
   else if (planner_id == "PRM")
   {
     return std::make_shared<og::PRM>(space_info);
-  }
-  else if (planner_id == "BKPIECE1")
-  {
-    return std::make_shared<og::BKPIECE1>(space_info);
   }
   else if (planner_id == "PRMstar")
   {

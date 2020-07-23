@@ -39,7 +39,7 @@ private:
   std::string group_name_;
   TSStateStorage tss_; /**< Thread-safe state storage, OMPL requires the
                           StateValidityChecker to be thread-safe. */
-  collision_detection::CollisionRequest collision_request_simple_;
   const planning_scene::PlanningSceneConstPtr& ps_;
+  collision_detection::CollisionRequest collision_request_simple_;
 };
 }  // namespace elion

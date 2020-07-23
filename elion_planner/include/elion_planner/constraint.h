@@ -109,6 +109,7 @@ public:
   {
     ROS_ERROR_STREAM("Constraint method calcError was not overridded, so it "
                      "should not be used.");
+    return Eigen::VectorXd::Zero(getCoDimension());
   }
 
   /** Calculate the Jacobian for the current parameters that are being
@@ -124,6 +125,7 @@ public:
   {
     ROS_ERROR_STREAM("Constraint method calcErrorJacobian was not overridded, "
                      "so it should not be used.");
+    return Eigen::MatrixXd::Zero(getCoDimension(), n_);
   }
 
 protected:
