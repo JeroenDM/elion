@@ -311,7 +311,7 @@ void Visuals::showPositionConstraints(moveit_msgs::PositionConstraint pos_con)
       dim = UNBOUNDED_SIZE;
   }
   rvt_->publishCuboid(pos_con.constraint_region.primitive_poses.at(0), dims.at(0), dims.at(1), dims.at(2),
-                      rviz_visual_tools::BLUE);
+                      rviz_visual_tools::TRANSLUCENT_DARK);
   rvt_->trigger();
 }
 
