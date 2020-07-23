@@ -33,7 +33,7 @@ void loadPlanningPlugin(ClassLoaderSPtr& planner_plugin_loader, planning_interfa
   try
   {
     planner_instance.reset(planner_plugin_loader->createUnmanagedInstance(plugin_name));
-    if (!planner_instance->initialize(robot_model, node_handle.getNamespace()))
+    if (!planner_instance->initialize(robot_model, "/move_group"))
       ROS_FATAL_STREAM("Could not initialize planner instance");
     ROS_INFO_STREAM("Using planning interface '" << planner_instance->getDescription() << "'");
   }
