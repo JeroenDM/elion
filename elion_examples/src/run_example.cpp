@@ -7,6 +7,8 @@
 #include <jsoncpp/json/json.h>
 
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/robot_state.h>
@@ -90,9 +92,11 @@ planning_interface::MotionPlanRequest createPTPProblem(geometry_msgs::Pose& star
   return req;
 }
 
-void readAndAddObstacles(const Json::Value& collision_objects, elion::Visuals& vis)
+void readAndAddObstacles(const Json::Value& json_collision_objects,
+                         moveit::planning_interface::PlanningSceneInterface& psi, const std::string& planning_frame)
 {
-  for (auto object : collision_objects)
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  for (auto object : json_collision_objects)
   {
     std::string name{ object.get("name", {}).asString() };
     std::vector<double> dimensions{ elion::jsonToVector(object["dims"]) };
@@ -102,13 +106,27 @@ void readAndAddObstacles(const Json::Value& collision_objects, elion::Visuals& v
       ROS_ERROR_STREAM("Collision object cubiod dimensions should have length 3, not " << dimensions.size());
     }
 
-    geometry_msgs::Pose box1_pose;
+    // Define a collision object ROS message.
+    moveit_msgs::CollisionObject collision_object;
+    collision_object.header.frame_id = planning_frame;
+    collision_object.id = name;
+    collision_object.operation = collision_object.ADD;
 
-    box1_pose = elion::jsonToPoseMsg(object);
+    shape_msgs::SolidPrimitive primitive;
+    primitive.type = primitive.BOX;
+    primitive.dimensions = dimensions;
 
-    vis.rvt_->publishCollisionCuboid(box1_pose, dimensions[0], dimensions[1], dimensions[2], name,
-                                     rviz_visual_tools::GREEN);
-    vis.rvt_->trigger();
+    geometry_msgs::Pose box_pose;
+    box_pose = elion::jsonToPoseMsg(object);
+
+    collision_object.primitives.push_back(primitive);
+    collision_object.primitive_poses.push_back(box_pose);
+
+    collision_objects.push_back(collision_object);
+  }
+  if (collision_objects.size() > 0)
+  {
+    psi.addCollisionObjects(collision_objects);
   }
 }
 
@@ -171,10 +189,12 @@ int main(int argc, char** argv)
   elion::loadPlanningPlugin(planner_plugin_loader, planner_instance, robot_model, node_handle, BASE_CLASS,
                             planning_plugin_name);
 
-  // auto planning_scene =
-  // std::make_shared<planning_scene::PlanningScene>(robot_model);
-  // planning_scene->getCurrentStateNonConst().setToDefaultValues(joint_model_group,
-  // "ready");
+  // Use the default planning scene published by the move group node.
+  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+  auto psm = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_description);
+  bool has_planning_scene = psm->requestPlanningSceneState("/get_planning_scene");
+  ROS_INFO_STREAM("Request planning scene " << (has_planning_scene ? "succeeded." : "failed."));
+  psm->startSceneMonitor("/move_group/monitored_planning_scene");
 
   // Visualization
   // ^^^^^^^^^^^^^
@@ -183,12 +203,12 @@ int main(int argc, char** argv)
   visuals.rvt_->deleteAllMarkers();
   visuals.rvt_->trigger();
 
-  auto psm = visuals.rvt_->getPlanningSceneMonitor();
+  // auto psm = visuals.rvt_->getPlanningSceneMonitor();
 
   // Obstacles
   // ^^^^^^^^^
 
-  readAndAddObstacles(root["collision_objects"], visuals);
+  readAndAddObstacles(root["collision_objects"], planning_scene_interface, fixed_frame);
 
   psm->getPlanningScene()->printKnownObjects();
 
@@ -233,7 +253,7 @@ int main(int argc, char** argv)
 
   planning_interface::MotionPlanResponse res1;
   auto context1 = planner_instance->getPlanningContext(psm->getPlanningScene(), req1, res1.error_code_);
-  if (context1)
+  if (context1 != nullptr)
   {
     success = context1->solve(res1);
   }
