@@ -317,7 +317,7 @@ void displaySolution(planning_interface::MotionPlanResponse res, const robot_sta
   const std::vector<std::string>& link_model_names = joint_model_group->getLinkModelNames();
   if (withOrientation)
   {
-    for (int k = 0; k < res.trajectory_->getWayPointCount(); ++k)
+    for (std::size_t k = 0; k < res.trajectory_->getWayPointCount(); ++k)
     {
       geometry_msgs::Pose pose_msg;
       const Eigen::Isometry3d& end_effector_transform =
@@ -382,7 +382,7 @@ void Visuals::displaySolution(planning_interface::MotionPlanResponse res,
   const std::vector<std::string>& link_model_names = joint_model_group->getLinkModelNames();
   if (withOrientation)
   {
-    for (int k = 0; k < res.trajectory_->getWayPointCount(); ++k)
+    for (std::size_t k = 0; k < res.trajectory_->getWayPointCount(); ++k)
     {
       geometry_msgs::Pose pose_msg;
       const Eigen::Isometry3d& end_effector_transform =

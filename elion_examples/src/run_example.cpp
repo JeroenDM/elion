@@ -292,7 +292,7 @@ int main(int argc, char** argv)
   {
     ROS_INFO_STREAM("Failed to create planning constext for the first problem.");
   }
-  if (res1.trajectory_)
+  if (res1.trajectory_ && success)
   {
     ROS_INFO_STREAM("Path found for position constraints of length: " << res1.trajectory_->getWayPointCount());
     elion::displaySolution(res1, joint_model_group, visual_tools,

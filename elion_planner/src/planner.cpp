@@ -111,7 +111,7 @@ bool ElionPlanner::checkSolution()
   for (auto& q : solution_path_)
   {
     constraints_->function(q, constraint_violation);
-    for (std::size_t dim{ 0 }; dim < constraint_violation.size(); ++dim)
+    for (Eigen::Index dim{ 0 }; dim < constraint_violation.size(); ++dim)
     {
       if (std::abs(constraint_violation[dim]) > constraint_tolerance)
       {
