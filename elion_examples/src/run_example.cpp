@@ -15,6 +15,7 @@
 
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MotionPlanResponse.h>
+#include <moveit_msgs/DisplayTrajectory.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_state/conversions.h>
@@ -27,7 +28,7 @@ planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>
                                                        const std::vector<double>& goal,
                                                        robot_model::RobotModelPtr& robot_model,
                                                        const robot_state::JointModelGroup* joint_model_group,
-                                                       elion::Visuals& visuals)
+                                                       moveit_visual_tools::MoveItVisualTools& mvt)
 {
   planning_interface::MotionPlanRequest req;
   req.group_name = joint_model_group->getName();
@@ -47,11 +48,11 @@ planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>
   // I don't know I nice way to publish two robot states at once with MoveIt
   // visual tools
   // Therefore I just put a pause in between to show them both in sequence.
-  visuals.rvt_->publishRobotState(start, joint_model_group, rviz_visual_tools::GREEN);
-  visuals.rvt_->trigger();
+  mvt.publishRobotState(start, joint_model_group, rviz_visual_tools::GREEN);
+  mvt.trigger();
   ros::Duration(1.0).sleep();
-  visuals.rvt_->publishRobotState(goal, joint_model_group, rviz_visual_tools::ORANGE);
-  visuals.rvt_->trigger();
+  mvt.publishRobotState(goal, joint_model_group, rviz_visual_tools::ORANGE);
+  mvt.trigger();
 
   return req;
 }
@@ -59,7 +60,7 @@ planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>
 planning_interface::MotionPlanRequest createPTPProblem(geometry_msgs::Pose& start_pose, geometry_msgs::Pose& goal_pose,
                                                        robot_model::RobotModelPtr& robot_model,
                                                        const robot_state::JointModelGroup* joint_model_group,
-                                                       elion::Visuals& visuals)
+                                                       moveit_visual_tools::MoveItVisualTools& mvt)
 {
   planning_interface::MotionPlanRequest req;
   req.group_name = joint_model_group->getName();
@@ -76,18 +77,19 @@ planning_interface::MotionPlanRequest createPTPProblem(geometry_msgs::Pose& star
   goal_state.setToDefaultValues();
   success = goal_state.setFromIK(joint_model_group, goal_pose, 10.0);
   ROS_INFO_STREAM("Goal pose IK: " << (success ? "succeeded." : "failed."));
-  moveit_msgs::Constraints joint_goal = kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group);
+  moveit_msgs::Constraints joint_goal =
+      kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group, 0.001);
   req.goal_constraints.clear();
   req.goal_constraints.push_back(joint_goal);
 
   // I don't know I nice way to publish two robot states at once with MoveIt
   // visual tools
   // Therefore I just put a pause in between to show them both in sequence.
-  visuals.rvt_->publishRobotState(start_state, rviz_visual_tools::GREEN);
-  visuals.rvt_->trigger();
+  mvt.publishRobotState(start_state, rviz_visual_tools::GREEN);
+  mvt.trigger();
   ros::Duration(1.5).sleep();
-  visuals.rvt_->publishRobotState(goal_state, rviz_visual_tools::ORANGE);
-  visuals.rvt_->trigger();
+  mvt.publishRobotState(goal_state, rviz_visual_tools::ORANGE);
+  mvt.trigger();
 
   return req;
 }
@@ -130,6 +132,13 @@ void readAndAddObstacles(const Json::Value& json_collision_objects,
   }
 }
 
+bool isJsonFileName(const std::string& input)
+{
+  static const std::string ext{ ".json" };
+  std::size_t found = input.find(ext);
+  return found != std::string::npos;
+}
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "elion_examples");
@@ -137,22 +146,40 @@ int main(int argc, char** argv)
   spinner.start();
   ros::NodeHandle node_handle;
 
-  // Read a configuration file
+  // Parse command line options
   // ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-  std::string config_file_name{ "panda_1.json" };
+  std::string config_file_name{ "panda_pos_con.json" };
+  std::string command_line_plugin_name{ "" };
   if (argc == 1)
   {
     ROS_INFO_STREAM("Running default planning example: " << config_file_name);
   }
-  else if (argc == 2)
+  if (argc > 1)
   {
-    config_file_name = std::string(argv[1]);
-    ROS_INFO_STREAM("Running planning example: " << config_file_name);
+    auto first_argument = std::string(argv[1]);
+    if (isJsonFileName(first_argument))
+    {
+      config_file_name = std::string(argv[1]);
+      ROS_INFO_STREAM("Running planning example: " << config_file_name);
+    }
+    else
+    {
+      ROS_ERROR_STREAM("First argument must be a json file name.");
+      ros::shutdown();
+      return 0;
+    }
   }
-  else
+  if (argc > 2)
   {
-    ROS_ERROR_STREAM("You can only supply one command line argument, the config file name.");
+    command_line_plugin_name = std::string(argv[2]);
+    ROS_INFO_STREAM("Overriding the plugin name from the config file with: " << command_line_plugin_name);
+  }
+  if (argc > 3)
+  {
+    ROS_ERROR_STREAM("Only two command line arguments supported. Usage:\n  elion_run_example [optional] "
+                     "<config_file_name> <planning_plugin_name>");
+    ros::shutdown();
+    return 0;
   }
 
   std::string path = ros::package::getPath("elion_examples");
@@ -171,7 +198,10 @@ int main(int argc, char** argv)
   const std::string robot_description{ robot_config.get("robot_description", {}).asString() };
   const std::string planning_group{ robot_config.get("planning_group", {}).asString() };
   const std::string fixed_frame{ robot_config.get("fixed_frame", {}).asString() };
-  const std::string planning_plugin_name{ robot_config.get("planning_plugin_name", {}).asString() };
+  std::string planning_plugin_name{ robot_config.get("planning_plugin_name", {}).asString() };
+
+  if (command_line_plugin_name != "")
+    planning_plugin_name = command_line_plugin_name;
 
   // Setup MoveIt related handles to robot, planning scene, ...
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -198,10 +228,11 @@ int main(int argc, char** argv)
 
   // Visualization
   // ^^^^^^^^^^^^^
-  elion::Visuals visuals(fixed_frame, node_handle);
-
-  visuals.rvt_->deleteAllMarkers();
-  visuals.rvt_->trigger();
+  namespace rvt = rviz_visual_tools;
+  moveit_visual_tools::MoveItVisualTools visual_tools(fixed_frame, "/visualization_marker_array", psm);
+  visual_tools.loadRobotStatePub("/display_robot_state");
+  visual_tools.deleteAllMarkers();
+  ros::Duration(1.0).sleep();
 
   // auto psm = visuals.rvt_->getPlanningSceneMonitor();
 
@@ -226,13 +257,13 @@ int main(int argc, char** argv)
   {
     std::vector<double> start{ elion::jsonToVector(root["start"]["values"]) };
     std::vector<double> goal{ elion::jsonToVector(root["goal"]["values"]) };
-    req1 = createPTPProblem(start, goal, robot_model, joint_model_group, visuals);
+    req1 = createPTPProblem(start, goal, robot_model, joint_model_group, visual_tools);
   }
   else if (start_type == "pose" && goal_type == "pose")
   {
     auto start_pose = elion::jsonToPoseMsg(root["start"]);
     auto goal_pose = elion::jsonToPoseMsg(root["goal"]);
-    req1 = createPTPProblem(start_pose, goal_pose, robot_model, joint_model_group, visuals);
+    req1 = createPTPProblem(start_pose, goal_pose, robot_model, joint_model_group, visual_tools);
   }
   else
   {
@@ -245,7 +276,7 @@ int main(int argc, char** argv)
   req1.planner_id = robot_config.get("planner_id", "RRTConnect").asString();  // RRTConnect as default planner
 
   if (req1.path_constraints.position_constraints.size() > 0)
-    visuals.showPositionConstraints(req1.path_constraints.position_constraints.at(0));
+    elion::showPositionConstraints(req1.path_constraints.position_constraints.at(0), visual_tools);
 
   // Solve the problems
   // ^^^^^^^^^^^^^^^^^^
@@ -264,7 +295,8 @@ int main(int argc, char** argv)
   if (res1.trajectory_)
   {
     ROS_INFO_STREAM("Path found for position constraints of length: " << res1.trajectory_->getWayPointCount());
-    visuals.displaySolution(res1, joint_model_group, true);
+    elion::displaySolution(res1, joint_model_group, visual_tools,
+                           (req1.path_constraints.orientation_constraints.size() > 0));
   }
 
   ros::shutdown();

@@ -55,6 +55,10 @@ moveit_msgs::OrientationConstraint readOrientationConstraints(const Json::Value&
 
 moveit_msgs::Constraints readPathConstraints(const Json::Value& json_constraints, const std::string fixed_frame);
 
+void showPositionConstraints(moveit_msgs::PositionConstraint pos_con, moveit_visual_tools::MoveItVisualTools& mvt);
+void displaySolution(planning_interface::MotionPlanResponse res, const robot_state::JointModelGroup* joint_model_group,
+                     moveit_visual_tools::MoveItVisualTools& mvt, bool withOrientation);
+
 /** Visuals groups everyting to do with showing stuff in Rviz
  * */
 class Visuals
