@@ -1,0 +1,3 @@
+<launch>
+    <node name="elion_run_example" pkg="elion_examples" type="elion_run_example" args="panda_collision_pos_con.json" output="screen"/>
+</launch>
