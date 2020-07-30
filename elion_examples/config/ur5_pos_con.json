@@ -1,0 +1,36 @@
+{
+    "config": {
+        "planning_group": "manipulator",
+        "fixed_frame": "world",
+        "robot_description": "robot_description",
+        "planning_plugin_name": "ompl_interface/OMPLPlanner",
+        "allowed_planning_time": 10.0,
+        "planner_id": "RRTConnect"
+    },
+    "start": {
+        "type": "pose",
+        "xyz": [
+            0.7,
+            -0.6,
+            0.04
+        ],
+        "rpy": [
+            1.57079632679,
+            0,
+            0.78539816339
+        ]
+    },
+    "goal": {
+        "type": "pose",
+        "xyz": [
+            0.7,
+            0.36,
+            0.35
+        ],
+        "rpy": [
+            1.57079632679,
+            0,
+            3.14159265359
+        ]
+    }
+}
