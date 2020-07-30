@@ -34,15 +34,17 @@ planning_interface::MotionPlanRequest createPTPProblem(
 
   // fill out start state in request
   robot_state::RobotState start_state(robot_model);
+  start_state.setToDefaultValues();
   start_state.setJointGroupPositions(joint_model_group, start);
   moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
 
   // fill out goal state in request
   robot_state::RobotState goal_state(robot_model);
+  goal_state.setToDefaultValues();
   goal_state.setJointGroupPositions(joint_model_group, goal);
   moveit_msgs::Constraints joint_goal =
       kinematic_constraints::constructGoalConstraints(goal_state,
-                                                      joint_model_group);
+                                                      joint_model_group, 0.001);
   req.goal_constraints.clear();
   req.goal_constraints.push_back(joint_goal);
 
