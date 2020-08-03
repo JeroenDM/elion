@@ -61,7 +61,7 @@ planning_interface::MotionPlanRequest createPTPProblem(
 }
 
 planning_interface::MotionPlanRequest createPTPProblem(
-    geometry_msgs::Pose& start_pose, geometry_msgs::Pose& goal_pose,
+    const std::vector<double>& start, geometry_msgs::Pose& goal_pose,
     robot_model::RobotModelPtr& robot_model,
     const robot_state::JointModelGroup* joint_model_group,
     moveit_visual_tools::MoveItVisualTools& mvt) {
@@ -70,10 +70,53 @@ planning_interface::MotionPlanRequest createPTPProblem(
 
   // fill out start state in request
   robot_state::RobotState start_state(robot_model);
+  start_state.setJointGroupPositions(joint_model_group, start);
+  moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
+
+  // fill out goal state in request
+  geometry_msgs::PoseStamped goal_pose_stamped;
+  goal_pose_stamped.pose = goal_pose;
+  goal_pose_stamped.header.frame_id = "world";
+
+  moveit_msgs::Constraints goal =
+      kinematic_constraints::constructGoalConstraints(
+          "gripper_reference", goal_pose_stamped, 0.001, 0.001);
+  req.goal_constraints.clear();
+  req.goal_constraints.push_back(goal);
+
+  // I don't know I nice way to publish two robot states at once with MoveIt
+  // visual tools
+  // Therefore I just put a pause in between to show them both in sequence.
+  mvt.publishRobotState(start, joint_model_group, rviz_visual_tools::GREEN);
+  mvt.trigger();
+  mvt.publishAxisLabeled(goal_pose, "Goal Pose");
+  mvt.trigger();
+
+  return req;
+}
+
+planning_interface::MotionPlanRequest createPTPProblem(
+    geometry_msgs::Pose& start_pose, geometry_msgs::Pose& goal_pose,
+    robot_model::RobotModelPtr& robot_model,
+    const robot_state::JointModelGroup* joint_model_group,
+    moveit_visual_tools::MoveItVisualTools& mvt) {
+  mvt.publishAxis(start_pose);
+  mvt.publishAxis(goal_pose);
+  mvt.trigger();
+  planning_interface::MotionPlanRequest req;
+  req.group_name = joint_model_group->getName();
+
+  // fill out start state in request
+  robot_state::RobotState start_state(robot_model);
   start_state.setToDefaultValues();
+  start_state.setToRandomPositions();
   bool success = start_state.setFromIK(joint_model_group, start_pose, 10.0);
   ROS_INFO_STREAM("Start pose IK: " << (success ? "succeeded." : "failed."));
   moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
+
+  Eigen::VectorXd js(6);
+  start_state.copyJointGroupPositions(joint_model_group, js);
+  std::cout << "Start state: " << js.transpose() << std::endl;
 
   // fill out goal state in request
   robot_state::RobotState goal_state(start_state);
@@ -85,6 +128,9 @@ planning_interface::MotionPlanRequest createPTPProblem(
                                                       joint_model_group, 0.001);
   req.goal_constraints.clear();
   req.goal_constraints.push_back(joint_goal);
+
+  goal_state.copyJointGroupPositions(joint_model_group, js);
+  std::cout << "Goal state: " << js.transpose() << std::endl;
 
   // I don't know I nice way to publish two robot states at once with MoveIt
   // visual tools
@@ -277,6 +323,11 @@ int main(int argc, char** argv) {
     auto goal_pose = elion::jsonToPoseMsg(root["goal"]);
     req1 = createPTPProblem(start_pose, goal_pose, robot_model,
                             joint_model_group, visual_tools);
+  } else if (start_type == "joint_values" && goal_type == "pose") {
+    std::vector<double> start{elion::jsonToVector(root["start"]["values"])};
+    auto goal_pose = elion::jsonToPoseMsg(root["goal"]);
+    req1 = createPTPProblem(start, goal_pose, robot_model, joint_model_group,
+                            visual_tools);
   } else {
     ROS_ERROR_STREAM("Unkown type of start or goal type: " << start_type << ", "
                                                            << goal_type);
