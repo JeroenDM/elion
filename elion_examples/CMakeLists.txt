@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_visual_tools
   pluginlib
   roscpp
+  moveit_planners_ompl
 )
 
 catkin_package(
@@ -58,3 +59,7 @@ target_link_libraries(elion_run_example
   ${PROJECT_NAME}_util
   jsoncpp_lib
 )
+
+add_executable(elion_visualize_ompl_constraints src/visualize_ompl_constraints.cpp)
+target_link_libraries(elion_visualize_ompl_constraints ${catkin_LIBRARIES})
+set_target_properties(elion_visualize_ompl_constraints PROPERTIES OUTPUT_NAME "visualize_ompl_constraints")
