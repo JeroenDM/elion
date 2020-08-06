@@ -28,6 +28,14 @@ const std::string PLANNING_GROUP{ "panda_arm" };
 const std::string FIXED_FRAME{ "panda_link0" };
 const std::string EE_LINK_NAME{ "panda_link8" };
 
+namespace ompl
+{
+namespace base
+{
+typedef std::shared_ptr<RealVectorStateSpace> RealVectorStateSpacePtr;
+}
+}
+
 namespace rvt = rviz_visual_tools;
 
 /*****************************************
@@ -69,6 +77,64 @@ moveit_msgs::PositionConstraint createPositionConstraintMsg(const std::string& b
 void publishJacobianArrow(moveit_visual_tools::MoveItVisualTools& mvt, const Eigen::MatrixXd& jac,
                           const Eigen::VectorXd& q, const Eigen::Isometry3d& ee_pose);
 
+bool project(ompl_interface::PositionConstraintPtr& constraint, Eigen::Ref<Eigen::VectorXd> x)
+{
+  // Newton's method
+  unsigned int iter = 0;
+  double norm = 0;
+  Eigen::VectorXd f(constraint->getCoDimension());
+  Eigen::MatrixXd j(constraint->getCoDimension(), constraint->getAmbientDimension());
+
+  const double squaredTolerance = constraint->getTolerance() * constraint->getTolerance();
+
+  constraint->function(x, f);
+  while ((norm = f.squaredNorm()) > squaredTolerance && iter++ < constraint->getMaxIterations())
+  {
+    // std::cout << iter << "," << f.squaredNorm() << "\n";
+
+    constraint->jacobian(x, j);
+    x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
+    constraint->function(x, f);
+  }
+
+  return norm < squaredTolerance;
+}
+
+void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint,
+                               ompl::base::RealVectorStateSpacePtr rvss, ompl::base::ConstrainedStateSpacePtr css)
+{
+  ompl::base::StateSamplerPtr sampler = rvss->allocStateSampler();
+  bool proj_succes{ false };
+  int failed_counter{ 0 };
+  const int num_runs{ 50 };
+
+  for (unsigned int max_iters{ 1 }; max_iters <= 50; max_iters += 1)
+  {
+    constraint->setMaxIterations(max_iters);
+
+    for (int i{ 0 }; i < num_runs; ++i)
+    {
+      auto* s1 = css->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
+      // ss->sampleUniform(s1);
+      // Eigen::VectorXd qi = *s1;
+
+      // use unconstrained sampling
+      sampler->sampleUniform(s1->getState());
+      Eigen::VectorXd qi = *s1;
+
+      // proj_succes = constraint->project(s1);
+      proj_succes = project(constraint, qi);
+
+      if (!proj_succes)
+      {
+        failed_counter++;
+      }
+    }
+    std::cout << max_iters << "," << failed_counter << "," << num_runs << "\n";
+    failed_counter = 0;
+  }
+}
+
 /*****************************************
  * MAIN
  * ***************************************/
@@ -108,6 +174,7 @@ int main(int argc, char** argv)
   {
     bounds.setLow(i, joint_limits[i]->at(0).min_position_);
     bounds.setHigh(i, joint_limits[i]->at(0).max_position_);
+    std::cout << "Joint limit " << i << ": " << bounds.low[i] << " -> " << bounds.high[i] << "\n";
   }
   state_space->setBounds(bounds);
 
@@ -129,69 +196,74 @@ int main(int argc, char** argv)
 
   // // Investigate the uniform sampler
   // // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  ompl::base::StateSamplerPtr ss = constrained_state_space->allocStateSampler();
-  ompl::base::StateSamplerPtr rvss = state_space->allocStateSampler();
 
-  bool proj_succes{ false };
-  Eigen::VectorXd error(3);
+  tryDifferentMaxIterations(pos_con, state_space, constrained_state_space);
 
-  int failed_counter{ 0 };
+  // ompl::base::StateSamplerPtr ss = constrained_state_space->allocStateSampler();
+  // ompl::base::StateSamplerPtr rvss = state_space->allocStateSampler();
 
-  for (int i{ 0 }; i < 10; ++i)
-  {
-    auto* s1 = constrained_state_space->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
-    // ss->sampleUniform(s1);
-    // Eigen::VectorXd qi = *s1;
+  // bool proj_succes{ false };
+  // Eigen::VectorXd error(3);
 
-    // use unconstrained sampling
-    rvss->sampleUniform(s1->getState());
-    Eigen::VectorXd qi = *s1;
+  // int failed_counter{ 0 };
 
-    Eigen::VectorXd pos = pos_con->forwardKinematics(qi).translation();
-    Eigen::MatrixXd jac(pos_con->getCoDimension(), robot.num_dofs_);
-    pos_con->jacobian(qi, jac);
-    // Eigen::MatrixXd jac = pos_con->calcErrorJacobian(qi);
-    publishJacobianArrow(visual_tools, jac, qi, pos_con->forwardKinematics(qi));
+  // pos_con->setMaxIterations(200);
 
-    robot.publishState(visual_tools, qi);
-    visual_tools.publishText(text_pose, "Random State", rvt::BLACK, rvt::XXXLARGE);
-    visual_tools.trigger();
-    ros::Duration(0.1).sleep();
-    visual_tools.prompt("(random state) Press 'next' in the RvizVisualToolsGui window.");
+  // for (int i{ 0 }; i < 10; ++i)
+  // {
+  //   auto* s1 = constrained_state_space->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
+  //   // ss->sampleUniform(s1);
+  //   // Eigen::VectorXd qi = *s1;
 
-    proj_succes = pos_con->project(s1);
+  //   // use unconstrained sampling
+  //   rvss->sampleUniform(s1->getState());
+  //   Eigen::VectorXd qi = *s1;
 
-    if (!proj_succes)
-    {
-      ROS_ERROR_STREAM("Failed to project state.");
-      failed_counter++;
-    }
-    qi = *s1;
-    pos_con->function(qi, error);
-    ROS_ERROR_STREAM("Position error (before enforce bouns): " << error.transpose());
+  //   Eigen::VectorXd pos = pos_con->forwardKinematics(qi).translation();
+  //   Eigen::MatrixXd jac(pos_con->getCoDimension(), robot.num_dofs_);
+  //   pos_con->jacobian(qi, jac);
+  //   // Eigen::MatrixXd jac = pos_con->calcErrorJacobian(qi);
+  //   publishJacobianArrow(visual_tools, jac, qi, pos_con->forwardKinematics(qi));
 
-    robot.publishState(visual_tools, qi);
-    visual_tools.publishText(text_pose, "Projected state", rvt::BLACK, rvt::XXXLARGE);
-    visual_tools.trigger();
-    visual_tools.prompt("(after projections) Press 'next' in the RvizVisualToolsGui window.");
+  //   robot.publishState(visual_tools, qi);
+  //   visual_tools.publishText(text_pose, "Random State", rvt::BLACK, rvt::XXXLARGE);
+  //   visual_tools.trigger();
+  //   ros::Duration(0.1).sleep();
+  //   visual_tools.prompt("(random state) Press 'next' in the RvizVisualToolsGui window.");
 
-    constrained_state_space->enforceBounds(s1);
-    qi = *s1;
-    pos_con->function(qi, error);
-    ROS_ERROR_STREAM("Position error: " << error.transpose());
+  //   proj_succes = pos_con->project(s1);
 
-    robot.publishState(visual_tools, qi);
-    visual_tools.publishText(text_pose, "Enforced Joint Limits", rvt::BLACK, rvt::XXXLARGE);
-    visual_tools.trigger();
-    visual_tools.prompt("(After enforceBounds) Press 'next' in the RvizVisualToolsGui window.");
+  //   if (!proj_succes)
+  //   {
+  //     ROS_ERROR_STREAM("Failed to project state.");
+  //     failed_counter++;
+  //   }
+  //   qi = *s1;
+  //   pos_con->function(qi, error);
+  //   ROS_ERROR_STREAM("Position error (before enforce bouns): " << error.transpose());
 
-    // Eigen::VectorXd pos = pos_con->forwardKinematics(qi).translation();
-    // ROS_ERROR_STREAM("Joint values: " << qi.transpose());
+  //   robot.publishState(visual_tools, qi);
+  //   visual_tools.publishText(text_pose, "Projected state", rvt::BLACK, rvt::XXXLARGE);
+  //   visual_tools.trigger();
+  //   visual_tools.prompt("(after projections) Press 'next' in the RvizVisualToolsGui window.");
 
-    constrained_state_space->freeState(s1);
-  }
+  //   // constrained_state_space->enforceBounds(s1);
+  //   // qi = *s1;
+  //   // pos_con->function(qi, error);
+  //   // ROS_ERROR_STREAM("Position error: " << error.transpose());
 
-  ROS_ERROR_STREAM("Projection faild in " << failed_counter << " cases.");
+  //   // robot.publishState(visual_tools, qi);
+  //   // visual_tools.publishText(text_pose, "Enforced Joint Limits", rvt::BLACK, rvt::XXXLARGE);
+  //   // visual_tools.trigger();
+  //   // visual_tools.prompt("(After enforceBounds) Press 'next' in the RvizVisualToolsGui window.");
+
+  //   // Eigen::VectorXd pos = pos_con->forwardKinematics(qi).translation();
+  //   // ROS_ERROR_STREAM("Joint values: " << qi.transpose());
+
+  //   constrained_state_space->freeState(s1);
+  // }
+
+  // ROS_ERROR_STREAM("Projection faild in " << failed_counter << " cases.");
 
   ros::shutdown();
   return 0;
