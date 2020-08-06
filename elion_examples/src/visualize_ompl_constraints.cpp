@@ -104,9 +104,14 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
                                ompl::base::RealVectorStateSpacePtr rvss, ompl::base::ConstrainedStateSpacePtr css)
 {
   ompl::base::StateSamplerPtr sampler = rvss->allocStateSampler();
-  bool proj_succes{ false };
-  int failed_counter{ 0 };
-  const int num_runs{ 50 };
+  bool proj_success{ false };
+  int success_counter{ 0 };
+  int enforce_bounds_success_counter{ 0 };
+  const int num_runs{ 100 };
+
+  auto* s1 = css->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
+  Eigen::Vector3d pos_error;
+  double squared_tolerance = constraint->getTolerance() * constraint->getTolerance();
 
   for (unsigned int max_iters{ 1 }; max_iters <= 50; max_iters += 1)
   {
@@ -114,7 +119,6 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
 
     for (int i{ 0 }; i < num_runs; ++i)
     {
-      auto* s1 = css->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
       // ss->sampleUniform(s1);
       // Eigen::VectorXd qi = *s1;
 
@@ -122,17 +126,33 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
       sampler->sampleUniform(s1->getState());
       Eigen::VectorXd qi = *s1;
 
-      // proj_succes = constraint->project(s1);
-      proj_succes = project(constraint, qi);
+      proj_success = constraint->project(s1);
+      // proj_succes = project(constraint, qi);
+      // I assume qi and si use the same underlying memory
 
-      if (!proj_succes)
+      if (proj_success)
       {
-        failed_counter++;
+        success_counter++;
+      }
+
+      css->enforceBounds(s1);
+      Eigen::VectorXd q_after = *s1;
+
+      constraint->function(q_after, pos_error);
+      double tolerance_error = pos_error.squaredNorm();
+
+      if (tolerance_error <= squared_tolerance && proj_success)
+      {
+        enforce_bounds_success_counter++;
       }
     }
-    std::cout << max_iters << "," << failed_counter << "," << num_runs << "\n";
-    failed_counter = 0;
+    std::cout << max_iters << "," << success_counter << "," << num_runs;
+    std::cout << "," << enforce_bounds_success_counter << "\n";
+    success_counter = 0;
+    enforce_bounds_success_counter = 0;
   }
+
+  css->freeState(s1);
 }
 
 /*****************************************
