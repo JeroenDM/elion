@@ -160,10 +160,10 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
  * ***************************************/
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "compl_example");
-  ros::AsyncSpinner spinner(2);
+  ros::init(argc, argv, "visualize_ompl_constraints");
+  ros::AsyncSpinner spinner(1);
   spinner.start();
-  ros::NodeHandle node_handle("~");
+  ros::NodeHandle node_handle;
 
   // Planning scene setup
   // ^^^^^^^^^^^^^^^^^^^^
@@ -174,6 +174,7 @@ int main(int argc, char** argv)
   moveit_visual_tools::MoveItVisualTools visual_tools(FIXED_FRAME, "/visualization_marker_array");
   visual_tools.loadRobotStatePub("/display_robot_state");
   visual_tools.loadRemoteControl();
+  visual_tools.loadMarkerPub(true);
   // visual_tools.loadTrajectoryPub();
   visual_tools.deleteAllMarkers();
   ros::Duration(1.0).sleep();
@@ -330,9 +331,10 @@ void publishPositionConstraintMsg(moveit_visual_tools::MoveItVisualTools& mvt, m
     if (dim == -1.0)
       dim = UNBOUNDED_SIZE;
   }
-  mvt.publishCuboid(pos_con.constraint_region.primitive_poses.at(0), dims.at(0), dims.at(1), dims.at(2),
-                    rviz_visual_tools::TRANSLUCENT_DARK);
+  bool did_publish = mvt.publishCuboid(pos_con.constraint_region.primitive_poses.at(0), dims.at(0), dims.at(1),
+                                       dims.at(2), rviz_visual_tools::GREEN);
   mvt.trigger();
+  ros::Duration(0.5).sleep();
 }
 
 /** \brief Helper function to create a specific position constraint. **/
@@ -344,9 +346,12 @@ moveit_msgs::PositionConstraint createPositionConstraintMsg(const std::string& b
   box_constraint.dimensions = { 0.05, 0.4, 0.05 }; /* use -1 to indicate no constraints. */
 
   geometry_msgs::Pose box_pose;
-  box_pose.position.x = 0.9;
+  // box_pose.position.x = 0.9;
+  // box_pose.position.y = 0.0;
+  // box_pose.position.z = 0.2;
+  box_pose.position.x = 0.3;
   box_pose.position.y = 0.0;
-  box_pose.position.z = 0.2;
+  box_pose.position.z = 0.5;
   box_pose.orientation.w = 1.0;
 
   moveit_msgs::PositionConstraint position_constraint;
