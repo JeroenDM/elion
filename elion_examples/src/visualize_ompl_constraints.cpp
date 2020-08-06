@@ -67,7 +67,7 @@ moveit_msgs::PositionConstraint createPositionConstraintMsg(const std::string& b
                                                             const std::string& ee_link_name);
 
 void publishJacobianArrow(moveit_visual_tools::MoveItVisualTools& mvt, const Eigen::MatrixXd& jac,
-                          const Eigen::VectorXd& q, const Eigen::Vector3d& position);
+                          const Eigen::VectorXd& q, const Eigen::Isometry3d& ee_pose);
 
 /*****************************************
  * MAIN
@@ -114,6 +114,7 @@ int main(int argc, char** argv)
   // create the position constraint model
   auto pos_con_msg = createPositionConstraintMsg(robot.base_link_, robot.ee_link_);
   publishPositionConstraintMsg(visual_tools, pos_con_msg);
+  ros::Duration(0.1).sleep();  // give the publisher some time
   moveit_msgs::Constraints constraint_msgs;
   constraint_msgs.position_constraints.push_back(pos_con_msg);
 
@@ -150,7 +151,7 @@ int main(int argc, char** argv)
     Eigen::MatrixXd jac(pos_con->getCoDimension(), robot.num_dofs_);
     pos_con->jacobian(qi, jac);
     // Eigen::MatrixXd jac = pos_con->calcErrorJacobian(qi);
-    publishJacobianArrow(visual_tools, jac, qi, pos_con->forwardKinematics(qi).translation());
+    publishJacobianArrow(visual_tools, jac, qi, pos_con->forwardKinematics(qi));
 
     robot.publishState(visual_tools, qi);
     visual_tools.publishText(text_pose, "Random State", rvt::BLACK, rvt::XXXLARGE);
@@ -266,13 +267,13 @@ moveit_msgs::PositionConstraint createPositionConstraintMsg(const std::string& b
 }
 
 void publishJacobianArrow(moveit_visual_tools::MoveItVisualTools& mvt, const Eigen::MatrixXd& jac,
-                          const Eigen::VectorXd& q, const Eigen::Vector3d& position)
+                          const Eigen::VectorXd& q, const Eigen::Isometry3d& ee_pose)
 {
   Eigen::Vector3d direction = jac * q;
   geometry_msgs::Point ee_origin;
-  ee_origin.x = position[0];
-  ee_origin.y = position[1];
-  ee_origin.z = position[2];
+  ee_origin.x = ee_pose.translation()[0];
+  ee_origin.y = ee_pose.translation()[1];
+  ee_origin.z = ee_pose.translation()[2];
   geometry_msgs::Point arrow_tip(ee_origin);
   ee_origin.x += direction[0];
   ee_origin.y += direction[1];
@@ -280,4 +281,5 @@ void publishJacobianArrow(moveit_visual_tools::MoveItVisualTools& mvt, const Eig
 
   mvt.publishArrow(arrow_tip, ee_origin, rvt::RED, rvt::LARGE);
   mvt.trigger();
+  ros::Duration(0.1).sleep();
 }
