@@ -22,11 +22,13 @@
 // const std::string PLANNING_GROUP{ "manipulator" };
 // const std::string FIXED_FRAME{ "base_link" };
 // const std::string EE_LINK_NAME{ "tool0" };
+// const double BOX_SIZE[]{ 0.9, 0.0, 0.2 };
 
 // // parameters for panda
 const std::string PLANNING_GROUP{ "panda_arm" };
 const std::string FIXED_FRAME{ "panda_link0" };
 const std::string EE_LINK_NAME{ "panda_link8" };
+const double BOX_SIZE[]{ 0.3, 0.0, 0.5 };
 
 namespace ompl
 {
@@ -100,6 +102,21 @@ bool project(ompl_interface::PositionConstraintPtr& constraint, Eigen::Ref<Eigen
   return norm < squaredTolerance;
 }
 
+// copied from  https://github.com/Jmeyer1292/opw_kinematics
+inline void harmonizeTowardZero(double* qs, const int num_dofs)
+{
+  const static double pi = M_PI;
+  const static double two_pi = 2.0 * M_PI;
+
+  for (int i = 0; i < num_dofs; i++)  // TODO: Unroll manually?
+  {
+    if (qs[i] > pi)
+      qs[i] -= two_pi;
+    else if (qs[i] < -pi)
+      qs[i] += two_pi;
+  }
+}
+
 void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint,
                                ompl::base::RealVectorStateSpacePtr rvss, ompl::base::ConstrainedStateSpacePtr css)
 {
@@ -107,9 +124,11 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
   bool proj_success{ false };
   int success_counter{ 0 };
   int enforce_bounds_success_counter{ 0 };
+  int clipped_success_counter{ 0 };
   const int num_runs{ 100 };
 
   auto* s1 = css->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
+  auto* s2 = css->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
   Eigen::Vector3d pos_error;
   double squared_tolerance = constraint->getTolerance() * constraint->getTolerance();
 
@@ -119,40 +138,64 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
 
     for (int i{ 0 }; i < num_runs; ++i)
     {
-      // ss->sampleUniform(s1);
-      // Eigen::VectorXd qi = *s1;
-
       // use unconstrained sampling
       sampler->sampleUniform(s1->getState());
-      Eigen::VectorXd qi = *s1;
 
+      // check if projection works out
       proj_success = constraint->project(s1);
-      // proj_succes = project(constraint, qi);
-      // I assume qi and si use the same underlying memory
-
       if (proj_success)
       {
         success_counter++;
       }
+      else
+      {
+        continue;
+      }
+      Eigen::VectorXd q_projected = *s1;
 
-      css->enforceBounds(s1);
-      Eigen::VectorXd q_after = *s1;
-
-      constraint->function(q_after, pos_error);
+      // clip to joint limits and check constraints
+      s2 = css->cloneState(s1)->as<ompl::base::ConstrainedStateSpace::StateType>();
+      css->enforceBounds(s2);
+      Eigen::VectorXd q_clipped = *s2;
+      constraint->function(q_clipped, pos_error);
       double tolerance_error = pos_error.squaredNorm();
-
       if (tolerance_error <= squared_tolerance && proj_success)
       {
         enforce_bounds_success_counter++;
       }
+
+      // edit state to move multiples of 2 * pi back inside -pi, pi
+      harmonizeTowardZero(css->getValueAddressAtIndex(s1, 0), rvss->getDimension());
+      Eigen::VectorXd q_harmonized = *s1;
+      // clip to joint limits and check constraints again
+      css->enforceBounds(s1);
+      Eigen::VectorXd q_clipped_harmonized = *s1;
+      constraint->function(q_clipped_harmonized, pos_error);
+      tolerance_error = pos_error.squaredNorm();
+      if (tolerance_error <= squared_tolerance && proj_success)
+      {
+        clipped_success_counter++;
+      }
+
+      // print different states
+      // std::cout << "------------------------------------------\n";
+      // std::cout << q_projected.transpose() << "\n";
+      // std::cout << q_clipped.transpose() << "\n";
+      // std::cout << q_harmonized.transpose() << "\n";
+      // std::cout << q_clipped_harmonized.transpose() << "\n";
     }
+
+    // or print counters to create graphs
     std::cout << max_iters << "," << success_counter << "," << num_runs;
-    std::cout << "," << enforce_bounds_success_counter << "\n";
+    std::cout << "," << enforce_bounds_success_counter;
+    std::cout << "," << clipped_success_counter << "\n";
     success_counter = 0;
     enforce_bounds_success_counter = 0;
+    clipped_success_counter = 0;
   }
 
   css->freeState(s1);
+  css->freeState(s2);
 }
 
 /*****************************************
@@ -346,12 +389,9 @@ moveit_msgs::PositionConstraint createPositionConstraintMsg(const std::string& b
   box_constraint.dimensions = { 0.05, 0.4, 0.05 }; /* use -1 to indicate no constraints. */
 
   geometry_msgs::Pose box_pose;
-  // box_pose.position.x = 0.9;
-  // box_pose.position.y = 0.0;
-  // box_pose.position.z = 0.2;
-  box_pose.position.x = 0.3;
-  box_pose.position.y = 0.0;
-  box_pose.position.z = 0.5;
+  box_pose.position.x = BOX_SIZE[0];
+  box_pose.position.y = BOX_SIZE[1];
+  box_pose.position.z = BOX_SIZE[2];
   box_pose.orientation.w = 1.0;
 
   moveit_msgs::PositionConstraint position_constraint;
