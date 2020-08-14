@@ -117,6 +117,30 @@ inline void harmonizeTowardZero(double* qs, const int num_dofs)
   }
 }
 
+/** Try to add or substract multiples of 2*pi to move a state inside the joint limits. **/
+void applyJointLimits(double* q, ompl::base::RealVectorStateSpacePtr& rvss)
+{
+  const static double two_pi = 2.0 * M_PI;
+  auto bounds = rvss->getBounds();
+  for (unsigned int i{ 0 }; i < rvss->getDimension(); ++i)
+  {
+    if (q[i] > bounds.high.at(i))
+    {
+      if ((q[i] - two_pi) >= bounds.low.at(i))
+      {
+        q[i] -= two_pi;
+      }
+    }
+    else if (q[i] < bounds.low.at(i))
+    {
+      if ((q[i] + two_pi) <= bounds.high.at(i))
+      {
+        q[i] += two_pi;
+      }
+    }
+  }
+}
+
 void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint,
                                ompl::base::RealVectorStateSpacePtr rvss, ompl::base::ConstrainedStateSpacePtr css)
 {
@@ -125,7 +149,7 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
   int success_counter{ 0 };
   int enforce_bounds_success_counter{ 0 };
   int clipped_success_counter{ 0 };
-  const int num_runs{ 100 };
+  const int num_runs{ 1000 };
 
   auto* s1 = css->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
   auto* s2 = css->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
@@ -165,7 +189,8 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
       }
 
       // edit state to move multiples of 2 * pi back inside -pi, pi
-      harmonizeTowardZero(css->getValueAddressAtIndex(s1, 0), rvss->getDimension());
+      // harmonizeTowardZero(css->getValueAddressAtIndex(s1, 0), rvss->getDimension());
+      applyJointLimits(css->getValueAddressAtIndex(s1, 0), rvss);
       Eigen::VectorXd q_harmonized = *s1;
       // clip to joint limits and check constraints again
       css->enforceBounds(s1);
@@ -180,8 +205,8 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
       // print different states
       // std::cout << "------------------------------------------\n";
       // std::cout << q_projected.transpose() << "\n";
-      // std::cout << q_clipped.transpose() << "\n";
       // std::cout << q_harmonized.transpose() << "\n";
+      // std::cout << q_clipped.transpose() << "\n";
       // std::cout << q_clipped_harmonized.transpose() << "\n";
     }
 
