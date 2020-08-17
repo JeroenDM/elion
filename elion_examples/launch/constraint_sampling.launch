@@ -1,0 +1,3 @@
+<launch>
+    <node name="visualize_ompl_constraints" pkg="elion_examples" type="visualize_ompl_constraints" output="screen"/>
+</launch>

@@ -6,6 +6,8 @@
 
 #include <Eigen/Dense>
 
+#include <eigen_conversions/eigen_msg.h>
+
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/conversions.h>
@@ -19,16 +21,18 @@
 #include <ompl/util/Exception.h>
 
 // // parameters for fanuc, kuka, ...
-// const std::string PLANNING_GROUP{ "manipulator" };
-// const std::string FIXED_FRAME{ "base_link" };
-// const std::string EE_LINK_NAME{ "tool0" };
-// const double BOX_SIZE[]{ 0.9, 0.0, 0.2 };
+const std::string PLANNING_GROUP{ "manipulator" };
+const std::string FIXED_FRAME{ "base_link" };
+const std::string EE_LINK_NAME{ "tool0" };
+const double BOX_SIZE[]{ 0.9, 0.0, 0.2 };
+const double ROTATION_TOL{ 0.1 };
 
 // // parameters for panda
-const std::string PLANNING_GROUP{ "panda_arm" };
-const std::string FIXED_FRAME{ "panda_link0" };
-const std::string EE_LINK_NAME{ "panda_link8" };
-const double BOX_SIZE[]{ 0.3, 0.0, 0.5 };
+// const std::string PLANNING_GROUP{ "panda_arm" };
+// const std::string FIXED_FRAME{ "panda_link0" };
+// const std::string EE_LINK_NAME{ "panda_link8" };
+// const double BOX_SIZE[]{ 0.3, 0.0, 0.5 };
+// const double ROTATION_TOL{ 0.5 };
 
 namespace ompl
 {
@@ -61,6 +65,18 @@ public:
     return joint_model_group_->getActiveJointModelsBounds();
   }
 
+  Eigen::Isometry3d fk(const std::vector<double>& joint_values)
+  {
+    robot_state_->setJointGroupPositions(joint_model_group_, joint_values);
+    return robot_state_->getGlobalLinkTransform(ee_link_);
+  }
+
+  Eigen::Isometry3d fk()
+  {
+    robot_state_->setToDefaultValues();
+    return robot_state_->getGlobalLinkTransform(ee_link_);
+  }
+
   std::string base_link_;
   std::string ee_link_;
   std::size_t num_dofs_;
@@ -75,6 +91,10 @@ void publishPositionConstraintMsg(moveit_visual_tools::MoveItVisualTools& mvt, m
 /** \brief Helper function to create a specific position constraint. **/
 moveit_msgs::PositionConstraint createPositionConstraintMsg(const std::string& base_link,
                                                             const std::string& ee_link_name);
+
+moveit_msgs::OrientationConstraint createOrientationConstraint(const std::string& base_link,
+                                                               const std::string& ee_link_name,
+                                                               geometry_msgs::Quaternion& nominal_orientation);
 
 void publishJacobianArrow(moveit_visual_tools::MoveItVisualTools& mvt, const Eigen::MatrixXd& jac,
                           const Eigen::VectorXd& q, const Eigen::Isometry3d& ee_pose);
@@ -118,7 +138,7 @@ inline void harmonizeTowardZero(double* qs, const int num_dofs)
 }
 
 /** Try to add or substract multiples of 2*pi to move a state inside the joint limits. **/
-void applyJointLimits(double* q, ompl::base::RealVectorStateSpacePtr& rvss)
+void applyJointLimits(double* q, const ompl::base::RealVectorStateSpacePtr& rvss)
 {
   const static double two_pi = 2.0 * M_PI;
   auto bounds = rvss->getBounds();
@@ -141,22 +161,26 @@ void applyJointLimits(double* q, ompl::base::RealVectorStateSpacePtr& rvss)
   }
 }
 
-void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint,
-                               ompl::base::RealVectorStateSpacePtr rvss, ompl::base::ConstrainedStateSpacePtr css)
+void tryDifferentMaxIterations(const ompl::base::ConstraintPtr& constraint,
+                               const ompl::base::RealVectorStateSpacePtr rvss,
+                               const ompl::base::ConstrainedStateSpacePtr css)
 {
   ompl::base::StateSamplerPtr sampler = rvss->allocStateSampler();
   bool proj_success{ false };
   int success_counter{ 0 };
   int enforce_bounds_success_counter{ 0 };
   int clipped_success_counter{ 0 };
-  const int num_runs{ 1000 };
+  const int num_runs{ 1 };
 
   auto* s1 = css->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
   auto* s2 = css->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
-  Eigen::Vector3d pos_error;
+  // Eigen::Vector3d pos_error;
+  Eigen::VectorXd pos_error(constraint->getCoDimension());
+  ROS_INFO_STREAM("Constraints of shape " << constraint->getAmbientDimension() << " by "
+                                          << constraint->getCoDimension());
   double squared_tolerance = constraint->getTolerance() * constraint->getTolerance();
 
-  for (unsigned int max_iters{ 1 }; max_iters <= 50; max_iters += 1)
+  for (unsigned int max_iters{ 1 }; max_iters <= 100; max_iters += 1)
   {
     constraint->setMaxIterations(max_iters);
 
@@ -187,7 +211,11 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
       {
         enforce_bounds_success_counter++;
       }
-
+      else
+      {
+        // std::cout << "ENFORCING BOUNDS FAILED\n";
+        // std::cout << (q_projected - q_clipped).transpose() << "\n";
+      }
       // edit state to move multiples of 2 * pi back inside -pi, pi
       // harmonizeTowardZero(css->getValueAddressAtIndex(s1, 0), rvss->getDimension());
       applyJointLimits(css->getValueAddressAtIndex(s1, 0), rvss);
@@ -208,6 +236,8 @@ void tryDifferentMaxIterations(ompl_interface::PositionConstraintPtr& constraint
       // std::cout << q_harmonized.transpose() << "\n";
       // std::cout << q_clipped.transpose() << "\n";
       // std::cout << q_clipped_harmonized.transpose() << "\n";
+      // if (!proj_success)
+      //   std::cout << "FAILED\n";
     }
 
     // or print counters to create graphs
@@ -268,91 +298,43 @@ int main(int argc, char** argv)
   state_space->setBounds(bounds);
 
   // create the position constraint model
-  auto pos_con_msg = createPositionConstraintMsg(robot.base_link_, robot.ee_link_);
-  publishPositionConstraintMsg(visual_tools, pos_con_msg);
-  ros::Duration(0.1).sleep();  // give the publisher some time
-  moveit_msgs::Constraints constraint_msgs;
-  constraint_msgs.position_constraints.push_back(pos_con_msg);
+  // auto pos_con_msg = createPositionConstraintMsg(robot.base_link_, robot.ee_link_);
+  // publishPositionConstraintMsg(visual_tools, pos_con_msg);
+  // ros::Duration(0.1).sleep();  // give the publisher some time
+  // moveit_msgs::Constraints constraint_msgs;
+  // constraint_msgs.position_constraints.push_back(pos_con_msg);
 
-  auto pos_con =
-      std::make_shared<ompl_interface::PositionConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
-  pos_con->init(constraint_msgs);
+  // auto pos_con =
+  //     std::make_shared<ompl_interface::PositionConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
+  // pos_con->init(constraint_msgs);
+
+  // orientation constraints
+  Eigen::Isometry3d ee_pose = robot.fk();
+  geometry_msgs::Quaternion ee_orientation;
+  tf::quaternionEigenToMsg(Eigen::Quaterniond(ee_pose.rotation()), ee_orientation);
+  auto ori_con_msg = createOrientationConstraint(robot.base_link_, robot.ee_link_, ee_orientation);
+  moveit_msgs::Constraints constraint_msgs;
+  constraint_msgs.orientation_constraints.push_back(ori_con_msg);
+  ompl_interface::BaseConstraintPtr ori_con =
+      std::make_shared<ompl_interface::OrientationConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
+  ori_con->init(constraint_msgs);
+
+  auto ompl_constraint =
+      std::make_shared<ompl_interface::JointLimitConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
+
+  ompl::base::ConstraintIntersectionPtr ci;
+  ci.reset(new ompl::base::ConstraintIntersection(robot.num_dofs_, { ori_con, ompl_constraint }));
 
   // and finally create the actual constrained state space
-  auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, pos_con);
+  // auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, pos_con);
+  auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, ci);
   auto constrained_state_space_info =
       std::make_shared<ompl::base::ConstrainedSpaceInformation>(constrained_state_space);
 
   // // Investigate the uniform sampler
   // // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  tryDifferentMaxIterations(pos_con, state_space, constrained_state_space);
-
-  // ompl::base::StateSamplerPtr ss = constrained_state_space->allocStateSampler();
-  // ompl::base::StateSamplerPtr rvss = state_space->allocStateSampler();
-
-  // bool proj_succes{ false };
-  // Eigen::VectorXd error(3);
-
-  // int failed_counter{ 0 };
-
-  // pos_con->setMaxIterations(200);
-
-  // for (int i{ 0 }; i < 10; ++i)
-  // {
-  //   auto* s1 = constrained_state_space->allocState()->as<ompl::base::ConstrainedStateSpace::StateType>();
-  //   // ss->sampleUniform(s1);
-  //   // Eigen::VectorXd qi = *s1;
-
-  //   // use unconstrained sampling
-  //   rvss->sampleUniform(s1->getState());
-  //   Eigen::VectorXd qi = *s1;
-
-  //   Eigen::VectorXd pos = pos_con->forwardKinematics(qi).translation();
-  //   Eigen::MatrixXd jac(pos_con->getCoDimension(), robot.num_dofs_);
-  //   pos_con->jacobian(qi, jac);
-  //   // Eigen::MatrixXd jac = pos_con->calcErrorJacobian(qi);
-  //   publishJacobianArrow(visual_tools, jac, qi, pos_con->forwardKinematics(qi));
-
-  //   robot.publishState(visual_tools, qi);
-  //   visual_tools.publishText(text_pose, "Random State", rvt::BLACK, rvt::XXXLARGE);
-  //   visual_tools.trigger();
-  //   ros::Duration(0.1).sleep();
-  //   visual_tools.prompt("(random state) Press 'next' in the RvizVisualToolsGui window.");
-
-  //   proj_succes = pos_con->project(s1);
-
-  //   if (!proj_succes)
-  //   {
-  //     ROS_ERROR_STREAM("Failed to project state.");
-  //     failed_counter++;
-  //   }
-  //   qi = *s1;
-  //   pos_con->function(qi, error);
-  //   ROS_ERROR_STREAM("Position error (before enforce bouns): " << error.transpose());
-
-  //   robot.publishState(visual_tools, qi);
-  //   visual_tools.publishText(text_pose, "Projected state", rvt::BLACK, rvt::XXXLARGE);
-  //   visual_tools.trigger();
-  //   visual_tools.prompt("(after projections) Press 'next' in the RvizVisualToolsGui window.");
-
-  //   // constrained_state_space->enforceBounds(s1);
-  //   // qi = *s1;
-  //   // pos_con->function(qi, error);
-  //   // ROS_ERROR_STREAM("Position error: " << error.transpose());
-
-  //   // robot.publishState(visual_tools, qi);
-  //   // visual_tools.publishText(text_pose, "Enforced Joint Limits", rvt::BLACK, rvt::XXXLARGE);
-  //   // visual_tools.trigger();
-  //   // visual_tools.prompt("(After enforceBounds) Press 'next' in the RvizVisualToolsGui window.");
-
-  //   // Eigen::VectorXd pos = pos_con->forwardKinematics(qi).translation();
-  //   // ROS_ERROR_STREAM("Joint values: " << qi.transpose());
-
-  //   constrained_state_space->freeState(s1);
-  // }
-
-  // ROS_ERROR_STREAM("Projection faild in " << failed_counter << " cases.");
+  tryDifferentMaxIterations(ci, state_space, constrained_state_space);
 
   ros::shutdown();
   return 0;
@@ -426,6 +408,20 @@ moveit_msgs::PositionConstraint createPositionConstraintMsg(const std::string& b
   position_constraint.constraint_region.primitive_poses.push_back(box_pose);
 
   return position_constraint;
+}
+
+moveit_msgs::OrientationConstraint createOrientationConstraint(const std::string& base_link,
+                                                               const std::string& ee_link_name,
+                                                               geometry_msgs::Quaternion& nominal_orientation)
+{
+  moveit_msgs::OrientationConstraint orientation_constraint;
+  orientation_constraint.header.frame_id = base_link;
+  orientation_constraint.link_name = ee_link_name;
+  orientation_constraint.orientation = nominal_orientation;
+  orientation_constraint.absolute_x_axis_tolerance = ROTATION_TOL;
+  orientation_constraint.absolute_y_axis_tolerance = ROTATION_TOL;
+  orientation_constraint.absolute_z_axis_tolerance = ROTATION_TOL;
+  return orientation_constraint;
 }
 
 void publishJacobianArrow(moveit_visual_tools::MoveItVisualTools& mvt, const Eigen::MatrixXd& jac,
