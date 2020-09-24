@@ -1,4 +1,5 @@
-#include <moveit/ompl_interface/detail/ompl_constraints.h>
+// #include <moveit/ompl_interface/detail/ompl_constraints.h>
+#include <elion_planner/constraint.h>
 
 #include <iostream>
 #include <memory>
@@ -40,7 +41,7 @@ namespace base
 {
 typedef std::shared_ptr<RealVectorStateSpace> RealVectorStateSpacePtr;
 }
-}
+}  // namespace ompl
 
 namespace rvt = rviz_visual_tools;
 
@@ -99,7 +100,7 @@ moveit_msgs::OrientationConstraint createOrientationConstraint(const std::string
 void publishJacobianArrow(moveit_visual_tools::MoveItVisualTools& mvt, const Eigen::MatrixXd& jac,
                           const Eigen::VectorXd& q, const Eigen::Isometry3d& ee_pose);
 
-bool project(ompl_interface::PositionConstraintPtr& constraint, Eigen::Ref<Eigen::VectorXd> x)
+bool project(elion::PositionConstraintPtr& constraint, Eigen::Ref<Eigen::VectorXd> x)
 {
   // Newton's method
   unsigned int iter = 0;
@@ -298,43 +299,43 @@ int main(int argc, char** argv)
   state_space->setBounds(bounds);
 
   // create the position constraint model
-  // auto pos_con_msg = createPositionConstraintMsg(robot.base_link_, robot.ee_link_);
-  // publishPositionConstraintMsg(visual_tools, pos_con_msg);
-  // ros::Duration(0.1).sleep();  // give the publisher some time
-  // moveit_msgs::Constraints constraint_msgs;
-  // constraint_msgs.position_constraints.push_back(pos_con_msg);
-
-  // auto pos_con =
-  //     std::make_shared<ompl_interface::PositionConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
-  // pos_con->init(constraint_msgs);
-
-  // orientation constraints
-  Eigen::Isometry3d ee_pose = robot.fk();
-  geometry_msgs::Quaternion ee_orientation;
-  tf::quaternionEigenToMsg(Eigen::Quaterniond(ee_pose.rotation()), ee_orientation);
-  auto ori_con_msg = createOrientationConstraint(robot.base_link_, robot.ee_link_, ee_orientation);
+  auto pos_con_msg = createPositionConstraintMsg(robot.base_link_, robot.ee_link_);
+  publishPositionConstraintMsg(visual_tools, pos_con_msg);
+  ros::Duration(0.1).sleep();  // give the publisher some time
   moveit_msgs::Constraints constraint_msgs;
-  constraint_msgs.orientation_constraints.push_back(ori_con_msg);
-  ompl_interface::BaseConstraintPtr ori_con =
-      std::make_shared<ompl_interface::OrientationConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
-  ori_con->init(constraint_msgs);
+  constraint_msgs.position_constraints.push_back(pos_con_msg);
 
-  auto ompl_constraint =
-      std::make_shared<ompl_interface::JointLimitConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
+  auto pos_con = std::make_shared<elion::PositionConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
+  pos_con->init(constraint_msgs);
 
-  ompl::base::ConstraintIntersectionPtr ci;
-  ci.reset(new ompl::base::ConstraintIntersection(robot.num_dofs_, { ori_con, ompl_constraint }));
+  // // orientation constraints
+  // Eigen::Isometry3d ee_pose = robot.fk();
+  // geometry_msgs::Quaternion ee_orientation;
+  // tf::quaternionEigenToMsg(Eigen::Quaterniond(ee_pose.rotation()), ee_orientation);
+  // auto ori_con_msg = createOrientationConstraint(robot.base_link_, robot.ee_link_, ee_orientation);
+  // moveit_msgs::Constraints constraint_msgs;
+  // constraint_msgs.orientation_constraints.push_back(ori_con_msg);
+  // elion::BaseConstraintPtr ori_con =
+  //     std::make_shared<elion::OrientationConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
+  // ori_con->init(constraint_msgs);
+
+  // auto ompl_constraint =
+  //     std::make_shared<elion::JointLimitConstraint>(robot.getRobotModel(), PLANNING_GROUP, robot.num_dofs_);
+
+  // ompl::base::ConstraintIntersectionPtr ci;
+  // ci.reset(new ompl::base::ConstraintIntersection(robot.num_dofs_, { ori_con, ompl_constraint }));
 
   // and finally create the actual constrained state space
-  // auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, pos_con);
-  auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, ci);
+  auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, pos_con);
+  // auto constrained_state_space = std::make_shared<ompl::base::ProjectedStateSpace>(state_space, ci);
   auto constrained_state_space_info =
       std::make_shared<ompl::base::ConstrainedSpaceInformation>(constrained_state_space);
 
   // // Investigate the uniform sampler
   // // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  tryDifferentMaxIterations(ci, state_space, constrained_state_space);
+  tryDifferentMaxIterations(pos_con, state_space, constrained_state_space);
+  // tryDifferentMaxIterations(ci, state_space, constrained_state_space);
 
   ros::shutdown();
   return 0;

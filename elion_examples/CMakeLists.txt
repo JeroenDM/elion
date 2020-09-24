@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   roscpp
   moveit_planners_ompl
+  elion_planner
 )
 
 catkin_package(
