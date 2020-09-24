@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Geometry>
+#include <memory>
 
 #include <ompl/base/Constraint.h>
 
@@ -145,6 +146,8 @@ protected:
   Eigen::Isometry3d target_pose_;
 };
 
+typedef std::shared_ptr<BaseConstraint> BaseConstraintPtr;
+
 class PositionConstraint : public BaseConstraint
 {
 public:
@@ -156,6 +159,8 @@ public:
   virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
 };
+
+typedef std::shared_ptr<PositionConstraint> PositionConstraintPtr;
 
 /** \brief orientation constraints based on angle-axis error.
  *
@@ -187,6 +192,8 @@ private:
   Eigen::Quaterniond target_as_quat_;
 };
 
+typedef std::shared_ptr<AngleAxisConstraint> AngleAxisConstraintPtr;
+
 /** \brief Orientation constraints based on roll, pitch, yaw error
  *
  * Constraints on roll, pitch, and yaw angle of the end-effector:
@@ -214,6 +221,8 @@ public:
 private:
   Eigen::Quaterniond target_as_quat_;
 };
+
+typedef std::shared_ptr<RPYConstraints> RPYConstraintsPtr;
 
 /** \brief Position and orientation constraint
  *
@@ -243,6 +252,8 @@ private:
   Eigen::Quaterniond target_as_quat_;
 };
 
+typedef std::shared_ptr<PoseConstraints> PoseConstraintsPtr;
+
 class XPositionConstraint : public BaseConstraint
 {
 public:
@@ -252,6 +263,8 @@ public:
   virtual void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const override;
   virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override;
 };
+
+typedef std::shared_ptr<XPositionConstraint> XPositionConstraintPtr;
 
 /** \brief Factory to create constraints based on what is in the MoveIt
  * constraint message. **/
