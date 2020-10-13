@@ -47,6 +47,8 @@
   <test_depend>moveit_ros_planning</test_depend>
   <test_depend>panda_moveit_config</test_depend>
 
+  <depend>moveit_visual_tools</depend>
+
   <!-- unreased test resources -->
   <!-- <test_depend>kuka_kr5_moveit_config</test_depend> -->
 

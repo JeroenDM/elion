@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_msgs
   roscpp
+  moveit_visual_tools
 )
 
 find_package(ompl REQUIRED)
