@@ -10,6 +10,8 @@ Work in progress.
 
 [API documentation for elion_planner package.](https://jeroendm.github.io/elion/docs/html/index.html)
 
+[Google sheet with an overview of planning problems I tried to solve with this package](https://docs.google.com/spreadsheets/d/1stQlRhBhPN7oWiNFP_NP_y2UuipUJ-9rYIfIOLDluFg/edit?usp=sharing).
+
 ## Build instructions
 
 Start with the usual commands:
@@ -74,8 +76,3 @@ Some basic tests exist to check the conversion of an angular velocity vector to 
 ```bash
 ./devel/lib/elion_planner/test_elion_conversions
 ```
-
-
-
-
-
