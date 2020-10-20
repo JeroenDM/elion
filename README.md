@@ -57,7 +57,7 @@ When Rviz is visible and the move group node is ready, you can run an example, f
 rosrun elion_examples elion_run_example panda_1.json
 ```
 
-![panda_example](doc/panda_example.gif)
+![panda_example](docs/panda_example.gif)
 
 ## Run tests
 Build the workspace again with the tests argument added.
