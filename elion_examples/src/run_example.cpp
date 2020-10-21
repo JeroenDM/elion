@@ -21,196 +21,13 @@
 #include <moveit/robot_state/conversions.h>
 
 #include "elion_examples/util.h"
+#include "elion_examples/json_util.h"
+#include "elion_examples/rviz_util.h"
 
 const std::string BASE_CLASS = "planning_interface::PlannerManager";
 
-planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>& start,
-                                                       const std::vector<double>& goal,
-                                                       robot_model::RobotModelPtr& robot_model,
-                                                       const robot_state::JointModelGroup* joint_model_group,
-                                                       moveit_visual_tools::MoveItVisualTools& mvt)
-{
-  planning_interface::MotionPlanRequest req;
-  req.group_name = joint_model_group->getName();
-
-  // fill out start state in request
-  robot_state::RobotState start_state(robot_model);
-  start_state.setToDefaultValues();
-  start_state.setJointGroupPositions(joint_model_group, start);
-  moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
-
-  // fill out goal state in request
-  robot_state::RobotState goal_state(robot_model);
-  goal_state.setToDefaultValues();
-  goal_state.setJointGroupPositions(joint_model_group, goal);
-  moveit_msgs::Constraints joint_goal =
-      kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group, 0.001);
-  req.goal_constraints.clear();
-  req.goal_constraints.push_back(joint_goal);
-
-  // I don't know I nice way to publish two robot states at once with MoveIt
-  // visual tools
-  // Therefore I just put a pause in between to show them both in sequence.
-  mvt.publishRobotState(start, joint_model_group, rviz_visual_tools::GREEN);
-  mvt.trigger();
-  ros::Duration(1.0).sleep();
-  mvt.publishRobotState(goal, joint_model_group, rviz_visual_tools::ORANGE);
-  mvt.trigger();
-
-  return req;
-}
-
-planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>& start, geometry_msgs::Pose& goal_pose,
-                                                       robot_model::RobotModelPtr& robot_model,
-                                                       const robot_state::JointModelGroup* joint_model_group,
-                                                       moveit_visual_tools::MoveItVisualTools& mvt)
-{
-  planning_interface::MotionPlanRequest req;
-  req.group_name = joint_model_group->getName();
-
-  // fill out start state in request
-  robot_state::RobotState start_state(robot_model);
-  start_state.setJointGroupPositions(joint_model_group, start);
-  moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
-
-  // fill out goal state in request
-  geometry_msgs::PoseStamped goal_pose_stamped;
-  goal_pose_stamped.pose = goal_pose;
-  goal_pose_stamped.header.frame_id = "world";
-
-  moveit_msgs::Constraints goal =
-      kinematic_constraints::constructGoalConstraints("gripper_reference", goal_pose_stamped, 0.001, 0.001);
-  req.goal_constraints.clear();
-  req.goal_constraints.push_back(goal);
-
-  // I don't know I nice way to publish two robot states at once with MoveIt
-  // visual tools
-  // Therefore I just put a pause in between to show them both in sequence.
-  mvt.publishRobotState(start, joint_model_group, rviz_visual_tools::GREEN);
-  mvt.trigger();
-  mvt.publishAxisLabeled(goal_pose, "Goal Pose");
-  mvt.trigger();
-
-  return req;
-}
-
-planning_interface::MotionPlanRequest createPTPProblem(geometry_msgs::Pose& start_pose, geometry_msgs::Pose& goal_pose,
-                                                       robot_model::RobotModelPtr& robot_model,
-                                                       const robot_state::JointModelGroup* joint_model_group,
-                                                       moveit_visual_tools::MoveItVisualTools& mvt)
-{
-  mvt.publishAxis(start_pose);
-  mvt.publishAxis(goal_pose);
-  mvt.trigger();
-  planning_interface::MotionPlanRequest req;
-  req.group_name = joint_model_group->getName();
-
-  // fill out start state in request
-  robot_state::RobotState start_state(robot_model);
-  start_state.setToDefaultValues();
-  start_state.setToRandomPositions();
-  bool success = start_state.setFromIK(joint_model_group, start_pose, 10.0);
-  ROS_INFO_STREAM("Start pose IK: " << (success ? "succeeded." : "failed."));
-  moveit::core::robotStateToRobotStateMsg(start_state, req.start_state);
-
-  Eigen::VectorXd js(6);
-  start_state.copyJointGroupPositions(joint_model_group, js);
-  std::cout << "Start state: " << js.transpose() << std::endl;
-
-  // fill out goal state in request
-  robot_state::RobotState goal_state(start_state);
-  goal_state.setToDefaultValues();
-  success = goal_state.setFromIK(joint_model_group, goal_pose, 10.0);
-  ROS_INFO_STREAM("Goal pose IK: " << (success ? "succeeded." : "failed."));
-  moveit_msgs::Constraints joint_goal =
-      kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group, 0.001);
-  req.goal_constraints.clear();
-  req.goal_constraints.push_back(joint_goal);
-
-  goal_state.copyJointGroupPositions(joint_model_group, js);
-  std::cout << "Goal state: " << js.transpose() << std::endl;
-
-  // I don't know I nice way to publish two robot states at once with MoveIt
-  // visual tools
-  // Therefore I just put a pause in between to show them both in sequence.
-  mvt.publishRobotState(start_state, rviz_visual_tools::GREEN);
-  mvt.trigger();
-  ros::Duration(1.5).sleep();
-  mvt.publishRobotState(goal_state, rviz_visual_tools::ORANGE);
-  mvt.trigger();
-
-  return req;
-}
-
-void readAndAddObstacles(const Json::Value& json_collision_objects,
-                         moveit::planning_interface::PlanningSceneInterface& psi, const std::string& planning_frame)
-{
-  std::vector<moveit_msgs::CollisionObject> collision_objects;
-  for (auto object : json_collision_objects)
-  {
-    std::string name{ object.get("name", {}).asString() };
-    std::vector<double> dimensions{ elion::jsonToVector(object["dims"]) };
-
-    if (dimensions.size() != 3)
-    {
-      ROS_ERROR_STREAM("Collision object cubiod dimensions should have length 3, not " << dimensions.size());
-    }
-
-    // Define a collision object ROS message.
-    moveit_msgs::CollisionObject collision_object;
-    collision_object.header.frame_id = planning_frame;
-    collision_object.id = name;
-    collision_object.operation = collision_object.ADD;
-
-    shape_msgs::SolidPrimitive primitive;
-    primitive.type = primitive.BOX;
-    primitive.dimensions = dimensions;
-
-    geometry_msgs::Pose box_pose;
-    box_pose = elion::jsonToPoseMsg(object);
-
-    collision_object.primitives.push_back(primitive);
-    collision_object.primitive_poses.push_back(box_pose);
-
-    collision_objects.push_back(collision_object);
-  }
-  if (collision_objects.size() > 0)
-  {
-    psi.addCollisionObjects(collision_objects);
-  }
-}
-
-bool isJsonFileName(const std::string& input)
-{
-  static const std::string ext{ ".json" };
-  std::size_t found = input.find(ext);
-  return found != std::string::npos;
-}
-
 void writeResultToFile(const std::string& filepath, const planning_interface::MotionPlanResponse& res,
-                       std::size_t run_id)
-{
-  std::ofstream file;
-  file.open(filepath, std::ios_base::app);
-
-  static bool is_first_call{ true };
-  if (is_first_call)
-  {
-    // write the header
-    file << "run_id,time,success,length\n";
-    is_first_call = false;
-  }
-
-  std::size_t length{ 0 };
-  if (res.trajectory_)
-    length = res.trajectory_->getWayPointCount();
-
-  file << run_id << ",";
-  file << res.planning_time_ << ",";
-  file << (res.trajectory_ != nullptr) << ", ";
-  file << length << "\n";
-  file.close();
-}
+                       std::size_t run_id);
 
 int main(int argc, char** argv)
 {
@@ -230,7 +47,7 @@ int main(int argc, char** argv)
   if (argc > 1)
   {
     auto first_argument = std::string(argv[1]);
-    if (isJsonFileName(first_argument))
+    if (elion::isJsonFileName(first_argument))
     {
       config_file_name = std::string(argv[1]);
       ROS_INFO_STREAM("Running planning example: " << config_file_name);
@@ -317,7 +134,7 @@ int main(int argc, char** argv)
   // Obstacles
   // ^^^^^^^^^
 
-  readAndAddObstacles(root["collision_objects"], planning_scene_interface, fixed_frame);
+  elion::readAndAddObstacles(root["collision_objects"], planning_scene_interface, fixed_frame);
 
   psm->getPlanningScene()->printKnownObjects();
 
@@ -339,19 +156,19 @@ int main(int argc, char** argv)
     {
       std::vector<double> start{ elion::jsonToVector(root["start"]["values"]) };
       std::vector<double> goal{ elion::jsonToVector(root["goal"]["values"]) };
-      req1 = createPTPProblem(start, goal, robot_model, joint_model_group, visual_tools);
+      req1 = elion::createPTPProblem(start, goal, robot_model, joint_model_group, visual_tools);
     }
     else if (start_type == "pose" && goal_type == "pose")
     {
       auto start_pose = elion::jsonToPoseMsg(root["start"]);
       auto goal_pose = elion::jsonToPoseMsg(root["goal"]);
-      req1 = createPTPProblem(start_pose, goal_pose, robot_model, joint_model_group, visual_tools);
+      req1 = elion::createPTPProblem(start_pose, goal_pose, robot_model, joint_model_group, visual_tools);
     }
     else if (start_type == "joint_values" && goal_type == "pose")
     {
       std::vector<double> start{ elion::jsonToVector(root["start"]["values"]) };
       auto goal_pose = elion::jsonToPoseMsg(root["goal"]);
-      req1 = createPTPProblem(start, goal_pose, robot_model, joint_model_group, visual_tools);
+      req1 = elion::createPTPProblem(start, goal_pose, robot_model, joint_model_group, visual_tools);
     }
     else
     {
@@ -402,4 +219,29 @@ int main(int argc, char** argv)
 
   ros::shutdown();
   return 0;
+}
+
+void writeResultToFile(const std::string& filepath, const planning_interface::MotionPlanResponse& res,
+                       std::size_t run_id)
+{
+  std::ofstream file;
+  file.open(filepath, std::ios_base::app);
+
+  static bool is_first_call{ true };
+  if (is_first_call)
+  {
+    // write the header
+    file << "run_id,time,success,length\n";
+    is_first_call = false;
+  }
+
+  std::size_t length{ 0 };
+  if (res.trajectory_)
+    length = res.trajectory_->getWayPointCount();
+
+  file << run_id << ",";
+  file << res.planning_time_ << ",";
+  file << (res.trajectory_ != nullptr) << ", ";
+  file << length << "\n";
+  file.close();
 }

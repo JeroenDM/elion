@@ -17,6 +17,8 @@
 #include <moveit_msgs/MotionPlanResponse.h>
 
 #include "elion_examples/util.h"
+#include "elion_examples/json_util.h"
+#include "elion_examples/rviz_util.h"
 
 /** Change this parameters for different robots or planning plugins. */
 const std::string FIXED_FRAME = "base_link";

@@ -38,6 +38,8 @@ include_directories(
 add_library(
   ${PROJECT_NAME}_util
   src/util.cpp
+  src/json_util.cpp
+  src/rviz_util.cpp
 )
 
 target_link_libraries(

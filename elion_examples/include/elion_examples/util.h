@@ -1,8 +1,9 @@
 #ifndef ELION_EXAMPLES_UTIL_H
 #define ELION_EXAMPLES_UTIL_H
 
+#include <string>
+
 #include <boost/scoped_ptr.hpp>
-#include <jsoncpp/json/json.h>
 #include <pluginlib/class_loader.h>
 
 #include <geometry_msgs/Pose.h>
@@ -45,49 +46,29 @@ moveit_msgs::OrientationConstraint createOrientationConstraint(const std::string
                                                                std::vector<double>& rotation_tolerance,
                                                                tf2::Quaternion& nominal_orientation);
 
-std::vector<double> jsonToVector(const Json::Value& json_value);
-
-geometry_msgs::Pose jsonToPoseMsg(const Json::Value& json_value);
-
-moveit_msgs::PositionConstraint readPositionConstraint(const Json::Value& con, const std::string fixed_frame);
-
-moveit_msgs::OrientationConstraint readOrientationConstraints(const Json::Value& con, const std::string fixed_frame);
-
-moveit_msgs::Constraints readPathConstraints(const Json::Value& json_constraints, const std::string fixed_frame);
-
-void showPositionConstraints(moveit_msgs::PositionConstraint pos_con, moveit_visual_tools::MoveItVisualTools& mvt);
-void displaySolution(planning_interface::MotionPlanResponse res, const robot_state::JointModelGroup* joint_model_group,
-                     moveit_visual_tools::MoveItVisualTools& mvt, bool withOrientation);
-
-/** Visuals groups everyting to do with showing stuff in Rviz
- * */
-class Visuals
-{
-public:
-  Visuals(const std::string& reference_frame, ros::NodeHandle& node_handle);
-
-  /** publish a green box at the nominal position, with dimensions
-   * according to the tolerances.
-   *
-   * Note: the nominal orientation of position constraints is not a thing yet.
-   * */
-  void showPositionConstraints(moveit_msgs::PositionConstraint pos_con);
-
-  /** Display trajectory using the DisplayTrajectory publisher and
-   * show end-effector path using moveit visual tools.
-   * */
-  void displaySolution(planning_interface::MotionPlanResponse res,
-                       const robot_state::JointModelGroup* joint_model_group, bool withOrientation);
-
-  moveit_visual_tools::MoveItVisualToolsPtr rvt_;
-  ros::Publisher display_publisher;
-};
-
+/** \brief Create joint space start -> joint space goal planning problem + visualization. **/
 planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>& start,
                                                        const std::vector<double>& goal,
                                                        robot_model::RobotModelPtr& robot_model,
-                                                       const robot_state::JointModelGroup* joint_model_group);
+                                                       const robot_state::JointModelGroup* joint_model_group,
+                                                       moveit_visual_tools::MoveItVisualTools& mvt);
 
+/** \brief Create joint space start -> end-effector pose goal planning problem + visualization.
+ *
+ * Uses the default IK solver to get joint space goal.
+ * **/
+planning_interface::MotionPlanRequest createPTPProblem(const std::vector<double>& start, geometry_msgs::Pose& goal_pose,
+                                                       robot_model::RobotModelPtr& robot_model,
+                                                       const robot_state::JointModelGroup* joint_model_group,
+                                                       moveit_visual_tools::MoveItVisualTools& mvt);
+
+/** \brief Create end-effector pose start -> end-effector pose goal planning problem + visualization.
+ *
+ * Uses the default IK solver to get joint space start and goal.
+ * **/
+planning_interface::MotionPlanRequest createPTPProblem(geometry_msgs::Pose& start_pose, geometry_msgs::Pose& goal_pose,
+                                                       robot_model::RobotModelPtr& robot_model,
+                                                       const robot_state::JointModelGroup* joint_model_group,
+                                                       moveit_visual_tools::MoveItVisualTools& mvt);
 }  // namespace elion
-
 #endif  // ELION_EXAMPLES_UTIL_H
