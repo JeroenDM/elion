@@ -188,7 +188,31 @@ bool isJsonFileName(const std::string& input) {
   return found != std::string::npos;
 }
 
-int main(int argc, char** argv) {
+void writeResultToFile(const std::string& filepath, const planning_interface::MotionPlanResponse& res,
+                       std::size_t run_id)
+{
+  std::ofstream file;
+  file.open(filepath, std::ios_base::app);
+
+  static bool is_first_call{ true };
+  if (is_first_call)
+  {
+    // write the header
+    file << "run_id,time,success,length\n";
+    is_first_call = false;
+  }
+
+  std::size_t length{ 0 };
+  if (res.trajectory_)
+    length = res.trajectory_->getWayPointCount();
+
+  file << run_id << ",";
+  file << res.planning_time_ << ",";
+  file << (res.trajectory_ != nullptr) << ", ";
+  file << length << "\n";
+  file.close();
+}
+
   ros::init(argc, argv, "elion_examples");
   ros::AsyncSpinner spinner(1);
   spinner.start();
@@ -305,10 +329,11 @@ int main(int argc, char** argv) {
 
   // Create the planning request
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-  // figure out whether start and goal state are given as joint values or
-  // end-effector poses
-  // TODO this could be moved to the createPTPProblem function
+  // Ugly quick wrap in a for loop to repeat it.
+  std::size_t num_repeats{ 1 };
+  num_repeats = root.get("num_repeats", 1).asUInt();
+  for (std::size_t run{ 0 }; run < num_repeats; ++run)
+  {
   std::string start_type{root["start"].get("type", {}).asString()};
   std::string goal_type{root["goal"].get("type", {}).asString()};
 
@@ -372,6 +397,11 @@ int main(int argc, char** argv) {
     display_publisher.publish(display_trajectory);
   }
 
+    const std::string output_file{ root.get("output_file", "/home/jeroen/ros/elion_ws/data/default.csv").asString() };
+    writeResultToFile(output_file, res1, run);
+
+    ROS_INFO_STREAM("Writing results to: " << output_file);
+  }
   ros::shutdown();
   return 0;
 }
