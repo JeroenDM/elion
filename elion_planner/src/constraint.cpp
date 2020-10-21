@@ -174,6 +174,7 @@ void RPYConstraints::parseConstraintMsg(moveit_msgs::Constraints constraints)
 {
   bounds_.clear();
   bounds_ = orientationConstraintMsgToBoundVector(constraints.orientation_constraints.at(0));
+  ROS_INFO_STREAM("Parsing euler angles constraints");
   ROS_INFO_STREAM("Parsed rx / roll constraints" << bounds_[0]);
   ROS_INFO_STREAM("Parsed ry / pitch constraints" << bounds_[1]);
   ROS_INFO_STREAM("Parsed rz / yaw constraints" << bounds_[2]);
