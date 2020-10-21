@@ -86,7 +86,7 @@ bool ElionPlanner::solve(const Eigen::Ref<const Eigen::VectorXd>& start_joint_po
   // solving it
   simple_setup_->setup();
   ob::PlannerStatus stat = simple_setup_->solve(allowed_planning_time);
-  if (stat)
+  if (stat == ob::PlannerStatus::EXACT_SOLUTION)
   {
     return true;
   }
