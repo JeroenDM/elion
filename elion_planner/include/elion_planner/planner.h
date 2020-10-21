@@ -63,6 +63,12 @@ public:
     return solution_path_;
   }
 
+  /** \brief Return the last planning time from the ompl's simple setup object. **/
+  double getLastPlanningtime()
+  {
+    return simple_setup_->getLastPlanComputationTime();
+  }
+
 private:
   /** \brief Create OMPL planner based on the name of the planner (planner_id).
    * **/

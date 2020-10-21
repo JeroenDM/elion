@@ -69,6 +69,7 @@ bool ElionPlanningContext::solve(planning_interface::MotionPlanResponse& res)
   {
     elion_planner_->postSolve();
     res.trajectory_ = createRobotTrajectoryFromSolution(elion_planner_->getSolutionPath());
+    res.planning_time_ = elion_planner_->getLastPlanningtime();
   }
 
   return success;
@@ -107,4 +108,4 @@ ElionPlanningContext::createRobotTrajectoryFromSolution(std::vector<Eigen::Vecto
   }
   return trajectory;
 }
-}  // namespace elion_plugin
+}  // namespace elion
